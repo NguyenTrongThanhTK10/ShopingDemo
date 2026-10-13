@@ -4,6 +4,7 @@ class ProductVariant {
     required this.label,
     required this.price,
     required this.stock,
+    this.imageIndex,
   });
 
   final String id;
@@ -12,6 +13,9 @@ class ProductVariant {
   /// Price in whole Vietnamese đồng. Display only in this local demo.
   final int price;
   final int stock;
+
+  /// Index of the matching photo in [Product.imagePaths], when available.
+  final int? imageIndex;
 }
 
 class Product {
@@ -27,6 +31,7 @@ class Product {
     required this.soldCount,
     required this.emoji,
     required this.variants,
+    this.imagePaths = const [],
     this.oldPrice,
   });
 
@@ -44,4 +49,5 @@ class Product {
   final int soldCount;
   final String emoji;
   final List<ProductVariant> variants;
+  final List<String> imagePaths;
 }

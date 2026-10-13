@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopingdemo/core/utils/money_formatter.dart';
@@ -6,6 +8,9 @@ import 'package:shopingdemo/features/cart/presentation/providers/cart_provider.d
 import 'package:shopingdemo/features/catalog/presentation/widgets/product_artwork.dart';
 import 'package:shopingdemo/features/orders/presentation/order_success_screen.dart';
 import 'package:shopingdemo/features/orders/presentation/providers/orders_provider.dart';
+import 'package:shopingdemo/features/payment/domain/payment_types.dart';
+import 'package:shopingdemo/features/payment/presentation/vietqr_payment_screen.dart';
+import 'package:shopingdemo/features/payment/presentation/vnpay_payment_screen.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -19,6 +24,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _recipientController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  PaymentMethod _selectedPaymentMethod = PaymentMethod.vietQr;
   bool _placingOrder = false;
 
   @override
@@ -50,13 +56,32 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             recipient: _recipientController.text.trim(),
             phone: _phoneController.text.trim(),
             address: _addressController.text.trim(),
+            paymentMethod: _selectedPaymentMethod,
+            paymentStatus: _selectedPaymentMethod == PaymentMethod.cod
+                ? PaymentStatus.pending
+                : PaymentStatus.pending,
           );
       ref.read(cartProvider.notifier).clearSelected();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => OrderSuccessScreen(order: order),
-        ),
-      );
+
+      if (_selectedPaymentMethod == PaymentMethod.vietQr) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => VietQrPaymentScreen(order: order),
+          ),
+        );
+      } else if (_selectedPaymentMethod == PaymentMethod.vnpay) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => VnpayPaymentScreen(order: order),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => OrderSuccessScreen(order: order),
+          ),
+        );
+      }
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -184,26 +209,142 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   const SizedBox(height: 20),
                   _SectionTitle(
                     icon: Icons.payments_outlined,
-                    title: 'Thanh toán',
+                    title: 'Phương thức thanh toán',
                   ),
                   const SizedBox(height: 10),
                   _SurfaceCard(
-                    child: Row(
-                      children: [
-                        Icon(Icons.wallet_outlined, color: colors.primary),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Thanh toán khi nhận hàng (COD)'),
-                              SizedBox(height: 2),
-                              Text('Chỉ mô phỏng trong ứng dụng.'),
-                            ],
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      children: PaymentMethod.values.map((method) {
+                        final isSelected = _selectedPaymentMethod == method;
+                        return InkWell(
+                          onTap: () =>
+                              setState(() => _selectedPaymentMethod = method),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? colors.primaryContainer
+                                        : colors.surfaceContainerHighest
+                                              .withValues(alpha: 0.5),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    method.icon,
+                                    color: isSelected
+                                        ? colors.primary
+                                        : colors.onSurfaceVariant,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 4,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          Text(
+                                            method.title,
+                                            style: TextStyle(
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.w600,
+                                              fontSize: 13.5,
+                                            ),
+                                          ),
+                                          if (method ==
+                                              PaymentMethod.vietQr) ...[
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                'Khuyên dùng',
+                                                style: TextStyle(
+                                                  color: Colors.green.shade800,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ] else if (method ==
+                                              PaymentMethod.vnpay) ...[
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                'Cổng VNPAY',
+                                                style: TextStyle(
+                                                  color: Colors.blue.shade800,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        method.subtitle,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontSize: 13,
+                                              height: 1.4,
+                                              color: colors.onSurface,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Radio<PaymentMethod>(
+                                  value: method,
+                                  groupValue: _selectedPaymentMethod,
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(
+                                        () => _selectedPaymentMethod = val,
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        Icon(Icons.check_circle, color: colors.primary),
-                      ],
+                        );
+                      }).toList(),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -268,10 +409,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         ],
                       ),
                     ),
-                    FilledButton(
-                      onPressed: _placingOrder ? null : _placeOrder,
-                      child: Text(
-                        _placingOrder ? 'Đang đặt...' : 'Đặt hàng mẫu',
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: _placingOrder ? null : _placeOrder,
+                        child: Text(
+                          _placingOrder
+                              ? 'Đang xử lý...'
+                              : _selectedPaymentMethod == PaymentMethod.vietQr
+                              ? 'Tiếp tục thanh toán VietQR'
+                              : _selectedPaymentMethod == PaymentMethod.vnpay
+                              ? 'Thanh toán qua VNPAY'
+                              : 'Đặt hàng (COD)',
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ],
@@ -283,16 +434,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 }
 
 class _SurfaceCard extends StatelessWidget {
-  const _SurfaceCard({required this.child});
+  const _SurfaceCard({required this.child, this.padding});
 
   final Widget child;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.surface,
         border: Border.all(color: colors.outlineVariant),
@@ -316,7 +468,9 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Icon(icon, size: 21, color: colors.primary),
         const SizedBox(width: 8),
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        Expanded(
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+        ),
       ],
     );
   }

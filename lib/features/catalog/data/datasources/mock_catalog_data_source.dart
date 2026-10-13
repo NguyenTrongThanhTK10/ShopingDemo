@@ -35,18 +35,24 @@ class MockCatalogDataSource {
       rating: 4.9,
       soldCount: 1240,
       emoji: '🎧',
+      imagePaths: [
+        'assets/products/earbuds.jpg',
+        'assets/products/earbuds-black.jpg',
+      ],
       variants: [
         ProductVariantDto(
           id: 'earbuds-cream',
           label: 'Kem sữa',
           price: 399000,
           stock: 28,
+          imageIndex: 0,
         ),
         ProductVariantDto(
           id: 'earbuds-black',
           label: 'Đen nhám',
           price: 399000,
           stock: 16,
+          imageIndex: 1,
         ),
       ],
     ),
@@ -62,6 +68,7 @@ class MockCatalogDataSource {
       rating: 4.8,
       soldCount: 856,
       emoji: '👕',
+      imagePaths: ['assets/products/linen-shirt.jpg'],
       variants: [
         ProductVariantDto(
           id: 'linen-s',
@@ -95,6 +102,7 @@ class MockCatalogDataSource {
       rating: 4.9,
       soldCount: 2100,
       emoji: '🧴',
+      imagePaths: ['assets/products/serum.jpg'],
       variants: [
         ProductVariantDto(
           id: 'serum-30',
@@ -123,6 +131,7 @@ class MockCatalogDataSource {
       rating: 4.7,
       soldCount: 524,
       emoji: '💡',
+      imagePaths: ['assets/products/lamp.jpg'],
       variants: [
         ProductVariantDto(
           id: 'lamp-white',
@@ -151,6 +160,7 @@ class MockCatalogDataSource {
       rating: 4.8,
       soldCount: 1800,
       emoji: '🥤',
+      imagePaths: ['assets/products/tumbler.jpg'],
       variants: [
         ProductVariantDto(
           id: 'tumbler-sage',
@@ -179,6 +189,7 @@ class MockCatalogDataSource {
       rating: 4.9,
       soldCount: 692,
       emoji: '👟',
+      imagePaths: ['assets/products/sneakers.jpg'],
       variants: [
         ProductVariantDto(
           id: 'sneakers-38',
@@ -212,6 +223,7 @@ class MockCatalogDataSource {
       rating: 4.9,
       soldCount: 980,
       emoji: '☕',
+      imagePaths: ['assets/products/coffee.jpg'],
       variants: [
         ProductVariantDto(
           id: 'coffee-bean',
@@ -239,6 +251,7 @@ class MockCatalogDataSource {
       rating: 4.7,
       soldCount: 431,
       emoji: '🎒',
+      imagePaths: ['assets/products/backpack.jpg'],
       variants: [
         ProductVariantDto(
           id: 'backpack-beige',
@@ -267,6 +280,7 @@ class MockCatalogDataSource {
       rating: 4.8,
       soldCount: 317,
       emoji: '⌨️',
+      imagePaths: ['assets/products/keyboard.jpg'],
       variants: [
         ProductVariantDto(
           id: 'keyboard-cream',
@@ -295,6 +309,7 @@ class MockCatalogDataSource {
       rating: 4.7,
       soldCount: 764,
       emoji: '🪴',
+      imagePaths: ['assets/products/plant.jpg'],
       variants: [
         ProductVariantDto(
           id: 'plant-white',
@@ -322,6 +337,7 @@ class MockCatalogDataSource {
       rating: 4.8,
       soldCount: 1490,
       emoji: '💄',
+      imagePaths: ['assets/products/lip-tint.jpg'],
       variants: [
         ProductVariantDto(
           id: 'lip-rose',
@@ -350,6 +366,7 @@ class MockCatalogDataSource {
       rating: 4.9,
       soldCount: 205,
       emoji: '📷',
+      imagePaths: ['assets/products/camera.jpg'],
       variants: [
         ProductVariantDto(
           id: 'camera-cream',

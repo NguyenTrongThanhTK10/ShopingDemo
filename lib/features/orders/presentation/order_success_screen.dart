@@ -68,9 +68,17 @@ class OrderSuccessScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _DetailRow(label: 'Trạng thái', value: order.status),
+                  _DetailRow(label: 'Trạng thái đơn', value: order.stage.label),
                   const SizedBox(height: 12),
-                  const _DetailRow(label: 'Thanh toán', value: 'COD mô phỏng'),
+                  _DetailRow(
+                    label: 'Phương thức',
+                    value: order.paymentMethod.title,
+                  ),
+                  const SizedBox(height: 12),
+                  _DetailRow(
+                    label: 'Thanh toán',
+                    value: order.paymentStatus.label,
+                  ),
                   const Divider(height: 28),
                   _DetailRow(
                     label: 'Tổng đơn',
@@ -118,15 +126,20 @@ class _DetailRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(label)),
-        Text(
-          value,
-          style: emphasized
-              ? Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colors.primary,
-                  fontWeight: FontWeight.bold,
-                )
-              : Theme.of(context).textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
+        const SizedBox(width: 8),
+        Flexible(
+          flex: 2,
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: emphasized
+                ? Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.bold,
+                  )
+                : Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     );

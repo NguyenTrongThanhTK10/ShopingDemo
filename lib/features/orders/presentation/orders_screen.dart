@@ -5,6 +5,9 @@ import 'package:shopingdemo/features/cart/domain/cart_line.dart';
 import 'package:shopingdemo/features/catalog/presentation/widgets/product_artwork.dart';
 import 'package:shopingdemo/features/orders/domain/demo_order.dart';
 import 'package:shopingdemo/features/orders/presentation/providers/orders_provider.dart';
+import 'package:shopingdemo/features/payment/domain/payment_types.dart';
+import 'package:shopingdemo/features/payment/presentation/vietqr_payment_screen.dart';
+import 'package:shopingdemo/features/payment/presentation/vnpay_payment_screen.dart';
 
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
@@ -12,21 +15,53 @@ class OrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(ordersProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Đơn hàng của tôi')),
-      body: orders.isEmpty
-          ? const _EmptyOrders()
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              itemCount: orders.length + 1,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return const _DemoNotice();
-                }
-                return _OrderCard(order: orders[index - 1]);
-              },
-            ),
+    return DefaultTabController(
+      length: OrderStage.values.length + 1,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Đơn mua'),
+          bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            tabs: [
+              const Tab(text: 'Tất cả'),
+              for (final stage in OrderStage.values) Tab(text: stage.label),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _OrdersTab(orders: orders),
+            for (final stage in OrderStage.values)
+              _OrdersTab(
+                orders: orders.where((order) => order.stage == stage).toList(),
+                stage: stage,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrdersTab extends StatelessWidget {
+  const _OrdersTab({required this.orders, this.stage});
+
+  final List<DemoOrder> orders;
+  final OrderStage? stage;
+
+  @override
+  Widget build(BuildContext context) {
+    if (orders.isEmpty) return _EmptyOrders(stage: stage);
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      itemCount: orders.length + 1,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        if (index == 0) return const _DemoNotice();
+        return _OrderCard(order: orders[index - 1]);
+      },
     );
   }
 }
@@ -97,7 +132,7 @@ class _OrderCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _StatusPill(status: order.status),
+            _StatusPill(status: order.stage.label),
             const SizedBox(width: 4),
             const Icon(Icons.expand_more),
           ],
@@ -135,6 +170,70 @@ class _OrderCard extends StatelessWidget {
             child: Text(
               order.address,
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(order.paymentMethod.icon, size: 18, color: colors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.paymentMethod.title,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        order.paymentStatus.label,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          color: order.paymentStatus.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (order.stage == OrderStage.awaitingPayment &&
+                    order.paymentStatus == PaymentStatus.pending &&
+                    order.paymentMethod != PaymentMethod.cod)
+                  FilledButton.tonal(
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                    ),
+                    onPressed: () {
+                      if (order.paymentMethod == PaymentMethod.vietQr) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => VietQrPaymentScreen(order: order),
+                          ),
+                        );
+                      } else if (order.paymentMethod == PaymentMethod.vnpay) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => VnpayPaymentScreen(order: order),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text(
+                      'Thanh toán ngay',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -215,7 +314,9 @@ class _OrderLine extends StatelessWidget {
 }
 
 class _EmptyOrders extends StatelessWidget {
-  const _EmptyOrders();
+  const _EmptyOrders({this.stage});
+
+  final OrderStage? stage;
 
   @override
   Widget build(BuildContext context) {
@@ -229,12 +330,17 @@ class _EmptyOrders extends StatelessWidget {
             Icon(Icons.receipt_long_outlined, size: 72, color: colors.primary),
             const SizedBox(height: 16),
             Text(
-              'Chưa có đơn hàng',
+              stage == null
+                  ? 'Chưa có đơn hàng'
+                  : 'Chưa có đơn ${stage!.label.toLowerCase()}',
               style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Các đơn hàng mẫu đã đặt sẽ xuất hiện tại đây trong phiên sử dụng.',
+              stage == null
+                  ? 'Các đơn hàng mẫu đã đặt sẽ xuất hiện tại đây trong phiên sử dụng.'
+                  : 'Đơn hàng ở trạng thái này sẽ xuất hiện tại đây.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

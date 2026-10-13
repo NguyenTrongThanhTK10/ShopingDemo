@@ -72,7 +72,18 @@ void main() {
     await tester.tap(find.text('Thanh toán'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'checkout layout');
-    await tester.tap(find.text('Đặt hàng mẫu'));
+    final codOption = find.text('Thanh toán khi nhận hàng (COD)');
+    await tester.scrollUntilVisible(
+      codOption,
+      260,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(codOption);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).last, const Offset(0, 900));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Đặt hàng (COD)'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'checkout validation');
     expect(find.text('Nhập tên người nhận.'), findsOneWidget);
@@ -83,11 +94,15 @@ void main() {
       find.byType(TextFormField).at(2),
       '12 Đường Mẫu, Hà Nội',
     );
-    await tester.tap(find.text('Đặt hàng mẫu'));
+    await tester.tap(find.text('Đặt hàng (COD)'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'success layout');
 
     expect(find.text('Đã tạo đơn hàng mẫu!'), findsOneWidget);
     expect(find.text('Mã đơn DEMO-0001'), findsOneWidget);
+    await tester.tap(find.text('Xem đơn hàng'));
+    await tester.pumpAndSettle();
+    expect(find.text('DEMO-0001'), findsOneWidget);
+    expect(find.text('Tất cả'), findsOneWidget);
   });
 }

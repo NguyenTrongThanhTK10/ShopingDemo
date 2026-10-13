@@ -2,7 +2,7 @@
 
 ## Bản Flutter demo hiện có
 
-Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng COD mô phỏng → Đơn hàng. Có bốn tab chính; Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng sẽ được đặt lại khi đóng ứng dụng.
+Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng mô phỏng → Đơn mua. Có năm tab chính, trong đó Đơn mua lọc theo trạng thái đơn; Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng sẽ được đặt lại khi đóng ứng dụng.
 
 ```bash
 flutter pub get
@@ -43,7 +43,7 @@ Xây dựng hệ thống gồm **ứng dụng khách mua hàng**, **kênh ngư�
 ## 2. Quy chuẩn UX/UI
 
 ### 2.1 Điều hướng chính
-Bottom navigation: **Trang chủ / Danh mục / Thông báo / Tôi**. Giỏ hàng mở từ icon ở đầu trang chủ. Có thể đặt tab Chat riêng nếu nghiên cứu UX xác nhận. Luồng chính: Trang chủ → Danh sách/Tìm kiếm → Chi tiết sản phẩm → Chọn biến thể → Giỏ hàng hoặc Mua ngay → Checkout → Xác nhận đơn → Theo dõi.
+Bottom navigation: **Trang chủ / Danh mục / Đơn mua / Thông báo / Tôi**. Giỏ hàng mở từ icon ở đầu trang chủ. Đơn mua có các tab Tất cả, Chờ thanh toán, Chờ xác nhận, Chờ lấy hàng, Đang giao, Hoàn thành, Đã hủy. Có thể đặt tab Chat riêng nếu nghiên cứu UX xác nhận. Luồng chính: Trang chủ → Danh sách/Tìm kiếm → Chi tiết sản phẩm → Chọn biến thể → Giỏ hàng hoặc Mua ngay → Checkout → Xác nhận đơn → Theo dõi.
 
 ### 2.2 Danh sách màn hình
 | Module | Màn hình |

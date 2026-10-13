@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../features/home/presentation/home_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
+import '../features/orders/presentation/orders_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 
-/// Persistent four-tab buyer navigation with a separate cart route.
+/// Persistent buyer navigation with a separate cart route.
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.categories, required this.cart});
 
@@ -33,8 +34,12 @@ class _AppShellState extends State<AppShell> {
     final pages = <Widget>[
       HomeScreen(onOpenCart: _openCart),
       widget.categories,
+      const OrdersScreen(),
       NotificationsScreen(onExplore: () => _selectTab(0)),
-      ProfileScreen(onExplore: () => _selectTab(0)),
+      ProfileScreen(
+        onExplore: () => _selectTab(0),
+        onOpenOrders: () => _selectTab(2),
+      ),
     ];
 
     return Scaffold(
@@ -59,6 +64,11 @@ class _AppShellState extends State<AppShell> {
               icon: Icon(Icons.grid_view_outlined),
               selectedIcon: Icon(Icons.grid_view_rounded),
               label: 'Danh mục',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.receipt_long_outlined),
+              selectedIcon: Icon(Icons.receipt_long_rounded),
+              label: 'Đơn mua',
             ),
             NavigationDestination(
               icon: Icon(Icons.notifications_none_rounded),

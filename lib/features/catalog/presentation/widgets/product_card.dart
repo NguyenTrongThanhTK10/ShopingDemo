@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/money_formatter.dart';
 import '../../domain/product.dart';
-import 'product_artwork.dart';
+import 'product_image.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({required this.product, required this.onTap, super.key});
@@ -38,11 +38,7 @@ class ProductCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ProductArtwork(
-                    emoji: product.emoji,
-                    label: product.name,
-                    compact: true,
-                  ),
+                  ProductImage(product: product, compact: true),
                   if (hasDiscount)
                     Positioned(
                       top: 10,

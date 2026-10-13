@@ -25,8 +25,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final width in [390.0, 900.0]) {
-    testWidgets('bottom bar has four tabs at ${width.toInt()}px', (
+  for (final width in [320.0, 390.0, 900.0]) {
+    testWidgets('bottom bar has five tabs at ${width.toInt()}px', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(Size(width, 844));
@@ -39,8 +39,14 @@ void main() {
       final bar = find.byType(NavigationBar);
       expect(bar, findsOneWidget);
       final navigationBar = tester.widget<NavigationBar>(bar);
-      expect(navigationBar.destinations, hasLength(4));
-      for (final label in ['Trang chủ', 'Danh mục', 'Thông báo', 'Tôi']) {
+      expect(navigationBar.destinations, hasLength(5));
+      for (final label in [
+        'Trang chủ',
+        'Danh mục',
+        'Đơn mua',
+        'Thông báo',
+        'Tôi',
+      ]) {
         expect(
           find.descendant(of: bar, matching: find.text(label)),
           findsOneWidget,
@@ -50,6 +56,12 @@ void main() {
         find.descendant(of: bar, matching: find.text('Giỏ hàng')),
         findsNothing,
       );
+      await tester.tap(
+        find.descendant(of: bar, matching: find.text('Đơn mua')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Tất cả'), findsOneWidget);
+      expect(find.text('Chưa có đơn hàng'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

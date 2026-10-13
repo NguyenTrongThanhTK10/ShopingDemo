@@ -6,15 +6,22 @@ class ProductVariantDto {
     required this.label,
     required this.price,
     required this.stock,
+    this.imageIndex,
   });
 
   final String id;
   final String label;
   final int price;
   final int stock;
+  final int? imageIndex;
 
-  ProductVariant toEntity() =>
-      ProductVariant(id: id, label: label, price: price, stock: stock);
+  ProductVariant toEntity() => ProductVariant(
+    id: id,
+    label: label,
+    price: price,
+    stock: stock,
+    imageIndex: imageIndex,
+  );
 }
 
 class ProductDto {
@@ -30,6 +37,7 @@ class ProductDto {
     required this.soldCount,
     required this.emoji,
     required this.variants,
+    this.imagePaths = const [],
     this.oldPrice,
   });
 
@@ -45,6 +53,7 @@ class ProductDto {
   final int soldCount;
   final String emoji;
   final List<ProductVariantDto> variants;
+  final List<String> imagePaths;
 
   Product toEntity() => Product(
     id: id,
@@ -59,5 +68,6 @@ class ProductDto {
     soldCount: soldCount,
     emoji: emoji,
     variants: variants.map((variant) => variant.toEntity()).toList(),
+    imagePaths: imagePaths,
   );
 }

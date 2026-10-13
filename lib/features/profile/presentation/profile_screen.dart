@@ -4,9 +4,10 @@ import '../../../app/theme/design_tokens.dart';
 import '../../orders/presentation/orders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key, this.onExplore});
+  const ProfileScreen({super.key, this.onExplore, this.onOpenOrders});
 
   final VoidCallback? onExplore;
+  final VoidCallback? onOpenOrders;
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +96,13 @@ class ProfileScreen extends StatelessWidget {
                   title: const Text('Đơn mua'),
                   subtitle: const Text('Xem đơn hàng trong bản demo'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const OrdersScreen(),
-                    ),
-                  ),
+                  onTap:
+                      onOpenOrders ??
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const OrdersScreen(),
+                        ),
+                      ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
