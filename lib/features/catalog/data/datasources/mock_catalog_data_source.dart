@@ -1,0 +1,369 @@
+import '../../domain/category.dart';
+import '../dto/product_dto.dart';
+
+/// Local fixtures until a catalog API is available.
+class MockCatalogDataSource {
+  Future<List<Category>> getCategories() async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return categories;
+  }
+
+  Future<List<ProductDto>> getProducts() async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return products;
+  }
+
+  static const categories = <Category>[
+    Category(id: 'tech', name: 'Công nghệ', emoji: '🎧'),
+    Category(id: 'fashion', name: 'Thời trang', emoji: '👕'),
+    Category(id: 'beauty', name: 'Làm đẹp', emoji: '🧴'),
+    Category(id: 'home', name: 'Nhà cửa', emoji: '🏠'),
+    Category(id: 'lifestyle', name: 'Đời sống', emoji: '🥤'),
+    Category(id: 'food', name: 'Thực phẩm', emoji: '☕'),
+  ];
+
+  static const products = <ProductDto>[
+    ProductDto(
+      id: 'earbuds',
+      name: 'Tai nghe không dây Melo Air',
+      description: 'Thiết kế nhỏ gọn, âm thanh trong trẻo và hộp sạc tiện mang theo mỗi ngày.',
+      shopId: 'melo-studio',
+      shopName: 'Melo Studio',
+      categoryId: 'tech',
+      price: 399000,
+      oldPrice: 599000,
+      rating: 4.9,
+      soldCount: 1240,
+      emoji: '🎧',
+      variants: [
+        ProductVariantDto(
+          id: 'earbuds-cream',
+          label: 'Kem sữa',
+          price: 399000,
+          stock: 28,
+        ),
+        ProductVariantDto(
+          id: 'earbuds-black',
+          label: 'Đen nhám',
+          price: 399000,
+          stock: 16,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'linen-shirt',
+      name: 'Áo sơ mi linen dáng rộng',
+      description: 'Chất linen thoáng nhẹ, phom thoải mái và dễ phối cho những ngày năng động.',
+      shopId: 'serein-wear',
+      shopName: 'Serein Wear',
+      categoryId: 'fashion',
+      price: 259000,
+      oldPrice: 349000,
+      rating: 4.8,
+      soldCount: 856,
+      emoji: '👕',
+      variants: [
+        ProductVariantDto(
+          id: 'linen-s',
+          label: 'Trắng ngà · S',
+          price: 259000,
+          stock: 20,
+        ),
+        ProductVariantDto(
+          id: 'linen-m',
+          label: 'Trắng ngà · M',
+          price: 259000,
+          stock: 31,
+        ),
+        ProductVariantDto(
+          id: 'linen-l',
+          label: 'Trắng ngà · L',
+          price: 259000,
+          stock: 12,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'serum',
+      name: 'Serum cấp ẩm Dew Drop',
+      description: 'Kết cấu thấm nhanh, giúp làn da mềm mịn và dễ chịu trong chu trình chăm sóc hằng ngày.',
+      shopId: 'mori-beauty',
+      shopName: 'Mori Beauty',
+      categoryId: 'beauty',
+      price: 189000,
+      oldPrice: 250000,
+      rating: 4.9,
+      soldCount: 2100,
+      emoji: '🧴',
+      variants: [
+        ProductVariantDto(
+          id: 'serum-30',
+          label: '30 ml',
+          price: 189000,
+          stock: 42,
+        ),
+        ProductVariantDto(
+          id: 'serum-50',
+          label: '50 ml',
+          price: 269000,
+          stock: 18,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'lamp',
+      name: 'Đèn bàn nấm ánh sáng ấm',
+      description:
+          'Ánh sáng dịu nhẹ, kiểu dáng vui mắt cho góc làm việc và phòng ngủ.',
+      shopId: 'nha-may',
+      shopName: 'Nhà Mây',
+      categoryId: 'home',
+      price: 329000,
+      oldPrice: 420000,
+      rating: 4.7,
+      soldCount: 524,
+      emoji: '💡',
+      variants: [
+        ProductVariantDto(
+          id: 'lamp-white',
+          label: 'Trắng kem',
+          price: 329000,
+          stock: 15,
+        ),
+        ProductVariantDto(
+          id: 'lamp-orange',
+          label: 'Cam đất',
+          price: 329000,
+          stock: 9,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'tumbler',
+      name: 'Bình giữ nhiệt Daylight 600ml',
+      description:
+          'Giữ nóng lạnh tiện lợi, nắp kín chắc chắn và thiết kế tối giản.',
+      shopId: 'everyday-goods',
+      shopName: 'Everyday Goods',
+      categoryId: 'lifestyle',
+      price: 179000,
+      oldPrice: 239000,
+      rating: 4.8,
+      soldCount: 1800,
+      emoji: '🥤',
+      variants: [
+        ProductVariantDto(
+          id: 'tumbler-sage',
+          label: 'Xanh sage',
+          price: 179000,
+          stock: 35,
+        ),
+        ProductVariantDto(
+          id: 'tumbler-pink',
+          label: 'Hồng phấn',
+          price: 179000,
+          stock: 22,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'sneakers',
+      name: 'Giày sneaker Canvas Pop',
+      description:
+          'Đế êm, chất vải canvas bền và bảng màu dễ phối với mọi trang phục.',
+      shopId: 'serein-wear',
+      shopName: 'Serein Wear',
+      categoryId: 'fashion',
+      price: 549000,
+      oldPrice: 690000,
+      rating: 4.9,
+      soldCount: 692,
+      emoji: '👟',
+      variants: [
+        ProductVariantDto(
+          id: 'sneakers-38',
+          label: 'Trắng · 38',
+          price: 549000,
+          stock: 14,
+        ),
+        ProductVariantDto(
+          id: 'sneakers-39',
+          label: 'Trắng · 39',
+          price: 549000,
+          stock: 17,
+        ),
+        ProductVariantDto(
+          id: 'sneakers-40',
+          label: 'Trắng · 40',
+          price: 549000,
+          stock: 10,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'coffee',
+      name: 'Cà phê hạt rang mộc 250g',
+      description: 'Hạt cà phê rang mới với hương chocolate nhẹ, phù hợp pha phin và pour over.',
+      shopId: 'roam-coffee',
+      shopName: 'Roam Coffee',
+      categoryId: 'food',
+      price: 159000,
+      oldPrice: 190000,
+      rating: 4.9,
+      soldCount: 980,
+      emoji: '☕',
+      variants: [
+        ProductVariantDto(
+          id: 'coffee-bean',
+          label: 'Nguyên hạt',
+          price: 159000,
+          stock: 50,
+        ),
+        ProductVariantDto(
+          id: 'coffee-ground',
+          label: 'Xay sẵn',
+          price: 159000,
+          stock: 40,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'backpack',
+      name: 'Balo mini City Walk',
+      description: 'Ngăn chứa thông minh, nhẹ vai và phù hợp đi học, đi làm hoặc dạo phố.',
+      shopId: 'everyday-goods',
+      shopName: 'Everyday Goods',
+      categoryId: 'fashion',
+      price: 459000,
+      oldPrice: 590000,
+      rating: 4.7,
+      soldCount: 431,
+      emoji: '🎒',
+      variants: [
+        ProductVariantDto(
+          id: 'backpack-beige',
+          label: 'Be cát',
+          price: 459000,
+          stock: 11,
+        ),
+        ProductVariantDto(
+          id: 'backpack-navy',
+          label: 'Xanh navy',
+          price: 459000,
+          stock: 7,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'keyboard',
+      name: 'Bàn phím cơ Mini 68',
+      description:
+          'Gõ êm, kết nối linh hoạt và phối màu tươi sáng cho bàn làm việc.',
+      shopId: 'melo-studio',
+      shopName: 'Melo Studio',
+      categoryId: 'tech',
+      price: 799000,
+      oldPrice: 990000,
+      rating: 4.8,
+      soldCount: 317,
+      emoji: '⌨️',
+      variants: [
+        ProductVariantDto(
+          id: 'keyboard-cream',
+          label: 'Kem · switch nâu',
+          price: 799000,
+          stock: 8,
+        ),
+        ProductVariantDto(
+          id: 'keyboard-blue',
+          label: 'Xanh · switch đỏ',
+          price: 799000,
+          stock: 5,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'plant',
+      name: 'Chậu cây xanh để bàn',
+      description:
+          'Một điểm xanh nhỏ giúp góc nhà thêm dịu mắt và dễ chăm sóc.',
+      shopId: 'nha-may',
+      shopName: 'Nhà Mây',
+      categoryId: 'home',
+      price: 129000,
+      oldPrice: 169000,
+      rating: 4.7,
+      soldCount: 764,
+      emoji: '🪴',
+      variants: [
+        ProductVariantDto(
+          id: 'plant-white',
+          label: 'Chậu trắng',
+          price: 129000,
+          stock: 25,
+        ),
+        ProductVariantDto(
+          id: 'plant-clay',
+          label: 'Chậu đất nung',
+          price: 139000,
+          stock: 16,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'lip-tint',
+      name: 'Son tint màu hồng trà',
+      description: 'Màu môi tự nhiên, chất son nhẹ và dễ dặm lại trong ngày.',
+      shopId: 'mori-beauty',
+      shopName: 'Mori Beauty',
+      categoryId: 'beauty',
+      price: 149000,
+      oldPrice: 199000,
+      rating: 4.8,
+      soldCount: 1490,
+      emoji: '💄',
+      variants: [
+        ProductVariantDto(
+          id: 'lip-rose',
+          label: 'Hồng trà',
+          price: 149000,
+          stock: 37,
+        ),
+        ProductVariantDto(
+          id: 'lip-peach',
+          label: 'Cam đào',
+          price: 149000,
+          stock: 21,
+        ),
+      ],
+    ),
+    ProductDto(
+      id: 'camera',
+      name: 'Máy ảnh in liền Pocket Cam',
+      description:
+          'Lưu khoảnh khắc ngay tức thì với thiết kế nhỏ xinh và dễ sử dụng.',
+      shopId: 'melo-studio',
+      shopName: 'Melo Studio',
+      categoryId: 'tech',
+      price: 1199000,
+      oldPrice: 1499000,
+      rating: 4.9,
+      soldCount: 205,
+      emoji: '📷',
+      variants: [
+        ProductVariantDto(
+          id: 'camera-cream',
+          label: 'Trắng kem',
+          price: 1199000,
+          stock: 6,
+        ),
+        ProductVariantDto(
+          id: 'camera-pink',
+          label: 'Hồng',
+          price: 1199000,
+          stock: 4,
+        ),
+      ],
+    ),
+  ];
+}
