@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 /// Shared visual values for Lumi Market.
 abstract final class AppColors {
-  static const coral = Color(0xFFC98B7D);
-  static const coralDark = Color(0xFFA85E52);
-  static const coralSoft = Color(0xFFF8ECE8);
-  static const teal = Color(0xFF587D73);
-  static const tealSoft = Color(0xFFEAF2EE);
-  static const ink = Color(0xFF414447);
-  static const muted = Color(0xFF777C80);
-  static const canvas = Color(0xFFFBF9F6);
-  static const line = Color(0xFFEDE9E4);
+  static const coral = Color(0xFFF45A31);
+  static const coralDark = Color(0xFFE84B26);
+  static const coralSoft = Color(0xFFFFEDE7);
+  static const teal = Color(0xFF276D68);
+  static const tealSoft = Color(0xFFE8F5F1);
+  static const ink = Color(0xFF22252B);
+  static const muted = Color(0xFF737981);
+  static const canvas = Color(0xFFF5F6F8);
+  static const line = Color(0xFFE9EBEF);
   static const white = Color(0xFFFFFFFF);
 
   static const productTech = Color(0xFFECEEF2);
@@ -26,9 +26,9 @@ abstract final class AppColors {
   static const productLifestyleInk = Color(0xFF7E9E98);
   static const productFoodInk = Color(0xFFA18D73);
 
-  static const darkCanvas = Color(0xFF1D2524);
-  static const darkSurface = Color(0xFF28312F);
-  static const darkLine = Color(0xFF3B4844);
+  static const darkCanvas = Color(0xFF17191E);
+  static const darkSurface = Color(0xFF24272D);
+  static const darkLine = Color(0xFF363A42);
 }
 
 abstract final class AppSpacing {

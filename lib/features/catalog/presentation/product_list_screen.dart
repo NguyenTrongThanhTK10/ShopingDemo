@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../reviews/presentation/providers/review_providers.dart';
 import '../domain/filter_products.dart';
 import 'product_detail_screen.dart';
 import 'providers/catalog_providers.dart';
+import 'widgets/catalog_search_field.dart';
 import 'widgets/product_card.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
@@ -12,11 +14,13 @@ class ProductListScreen extends ConsumerStatefulWidget {
     this.title,
     this.categoryId,
     this.autofocusSearch = false,
+    this.initialQuery = '',
   });
 
   final String? title;
   final String? categoryId;
   final bool autofocusSearch;
+  final String initialQuery;
 
   @override
   ConsumerState<ProductListScreen> createState() => _ProductListScreenState();
@@ -30,7 +34,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController();
+    _searchController = TextEditingController(text: widget.initialQuery);
     _categoryId = widget.categoryId;
   }
 
@@ -51,40 +55,21 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(widget.title ?? 'Khám phá sản phẩm'),
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: colors.surface,
       ),
       body: SafeArea(
         top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: TextField(
+            Container(
+              color: colors.surface,
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: CatalogSearchField(
                 controller: _searchController,
                 autofocus: widget.autofocusSearch,
+                categoryId: _categoryId,
                 onChanged: (_) => setState(() {}),
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: 'Tìm sản phẩm hoặc cửa hàng',
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  suffixIcon: _searchController.text.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Xóa tìm kiếm',
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                  filled: true,
-                  fillColor: colors.surfaceContainerLow,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
               ),
             ),
             if (categories.asData case final data?)
@@ -97,11 +82,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final category = index == 0 ? null : data.value[index - 1];
-                    return ChoiceChip(
-                      label: Text(category?.name ?? 'Tất cả'),
+                    return _CatalogFilterChip(
+                      label: category?.name ?? 'Tất cả',
                       selected: _categoryId == category?.id,
-                      onSelected: (_) =>
-                          setState(() => _categoryId = category?.id),
+                      onTap: () => setState(() => _categoryId = category?.id),
                     );
                   },
                 ),
@@ -146,6 +130,16 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 data: (allProducts) {
                   final items = filterProducts(
                     allProducts,
+                    ratingOverrides: _sortOrder == ProductSort.topRated
+                        ? {
+                            for (final product in allProducts)
+                              if (ref.watch(
+                                    productReviewSummaryProvider(product.id),
+                                  )
+                                  case final summary?)
+                                product.id: summary.average,
+                          }
+                        : const {},
                     query: _searchController.text,
                     categoryId: _categoryId,
                     sortOrder: _sortOrder,
@@ -172,7 +166,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                         child: Text(
-                          '${items.length} sản phẩm',
+                          '${items.length} sản phẩm dành cho bạn',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
@@ -188,9 +182,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: columns,
-                                    mainAxisSpacing: 12,
-                                    crossAxisSpacing: 12,
-                                    childAspectRatio: .64,
+                                    mainAxisSpacing: 10,
+                                    crossAxisSpacing: 10,
+                                    childAspectRatio: .57,
                                   ),
                               itemBuilder: (context, index) => ProductCard(
                                 product: items[index],
@@ -240,12 +234,42 @@ class _SortChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(right: 8),
-    child: ChoiceChip(
+    child: _CatalogFilterChip(label: label, selected: selected, onTap: onTap),
+  );
+}
+
+class _CatalogFilterChip extends StatelessWidget {
+  const _CatalogFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return ChoiceChip(
       label: Text(label),
       selected: selected,
       onSelected: (_) => onTap(),
-    ),
-  );
+      backgroundColor: colors.surface,
+      selectedColor: colors.outlineVariant,
+      surfaceTintColor: Colors.transparent,
+      checkmarkColor: colors.onSurface,
+      side: BorderSide(
+        color: selected ? colors.onSurfaceVariant : colors.outlineVariant,
+      ),
+      labelStyle: theme.textTheme.labelLarge?.copyWith(
+        color: colors.onSurface,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      ),
+    );
+  }
 }
 
 class _ListingStatus extends StatelessWidget {

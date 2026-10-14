@@ -2,7 +2,17 @@
 
 ## Bản Flutter demo hiện có
 
-Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng mô phỏng → Đơn mua. Có năm tab chính, trong đó Đơn mua lọc theo trạng thái đơn; Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng sẽ được đặt lại khi đóng ứng dụng.
+Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng mô phỏng → Đơn mua → Đánh giá. Có năm tab chính, trong đó Đơn mua lọc theo trạng thái đơn; Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng và đánh giá mới sẽ được đặt lại khi đóng ứng dụng.
+
+**Đánh giá sản phẩm:** trang chi tiết hiển thị điểm trung bình, phân bố sao và nhận xét; màn hình xem tất cả hỗ trợ lọc 1–5 sao và tìm nội dung không dấu. Các nhận xét minh họa có nhãn “Mẫu”. Để thử viết đánh giá: đặt đơn COD (hoặc hoàn tất thanh toán mô phỏng), mở chi tiết đơn trong Đơn mua → **Mô phỏng nhận hàng** → **Đánh giá**. Mỗi phân loại trong một đơn đã hoàn thành được đánh giá một lần; nội dung cần 10–1.000 ký tự và 1–5 sao. Điểm sao trên thẻ sản phẩm, trang chi tiết và sắp xếp “Đánh giá tốt” được cập nhật theo các đánh giá hiện có. `filterProducts` có thêm tham số tùy chọn `ratingOverrides` để dùng điểm hiện tại; lời gọi cũ giữ cách sắp xếp theo `Product.rating`.
+
+Tính năng dùng `ReviewRepository` và dữ liệu trong phiên; khi kết nối backend cần xác thực tài khoản, quyền đánh giá theo order item, chống gửi trùng và kiểm duyệt ở server. Ảnh đánh giá và báo cáo vi phạm chưa có trong bản demo.
+
+**Gợi ý tìm kiếm:** khi gõ trong Khám phá sản phẩm, danh sách gợi ý hiện bên dưới ô tìm kiếm theo tên sản phẩm/cửa hàng trong danh mục đang chọn. Hỗ trợ từ khóa không dấu, ưu tiên tên bắt đầu bằng từ khóa, tối đa 6 gợi ý và loại bỏ tên trùng. Chạm gợi ý để điền từ khóa và xem kết quả; bấm Tìm kiếm trên bàn phím giữ nguyên từ khóa đang gõ. Gợi ý dùng dữ liệu catalog mẫu hiện có.
+
+**Tìm kiếm bằng giọng nói:** icon micro nằm bên phải bên trong ô tìm kiếm ở Trang chủ và Khám phá sản phẩm. Bấm micro, nói tên sản phẩm bằng tiếng Việt, kiểm tra câu nhận được rồi bấm **Tìm kiếm**. Có thể Dừng nghe/Nói lại; hủy bảng nghe giữ nguyên từ khóa trước đó. Phiên nghe kết thúc khi đóng bảng hoặc đưa ứng dụng xuống nền. Quyền micro/nhận dạng chỉ được yêu cầu khi bấm micro; lỗi quyền, không nghe rõ, mạng hoặc ngôn ngữ không được hỗ trợ có thông báo và cho thử lại.
+
+Tính năng dùng [speech_to_text 7.5.0](https://pub.dev/packages/speech_to_text), tương thích với Flutter từ 3.44.0; không thay đổi phiên bản các dependency hiện có. Android có quyền `RECORD_AUDIO`, `INTERNET` và khai báo truy vấn `RecognitionService`; iOS/macOS có mô tả quyền micro và nhận dạng, macOS thêm sandbox audio input/network client. Cần chạy lại `flutter run` sau khi thêm plugin native và cấp quyền khi được hỏi. Khả năng nhận tiếng Việt và yêu cầu kết nối mạng phụ thuộc dịch vụ nhận dạng trên thiết bị; widget test dùng dịch vụ giả lập, cần thử nói trên thiết bị thật để kiểm tra chất lượng nhận dạng.
 
 ```bash
 flutter pub get

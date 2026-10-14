@@ -72,4 +72,24 @@ class OrdersNotifier extends Notifier<List<DemoOrder>> {
           o,
     ];
   }
+
+  /// Simulates delivery for the local demo so completed orders can be reviewed.
+  void completeDemoOrder(String orderId) {
+    final matching = state.where((order) => order.id == orderId);
+    if (matching.isEmpty) throw StateError('Order not found');
+    final order = matching.first;
+    if (order.stage == OrderStage.completed) return;
+    if (order.stage == OrderStage.canceled ||
+        (order.paymentMethod != PaymentMethod.cod &&
+            order.paymentStatus != PaymentStatus.paid)) {
+      throw StateError('Order is not eligible for demo delivery');
+    }
+    state = [
+      for (final item in state)
+        if (item.id == orderId)
+          item.copyWith(status: 'Hoàn thành', paymentStatus: PaymentStatus.paid)
+        else
+          item,
+    ];
+  }
 }

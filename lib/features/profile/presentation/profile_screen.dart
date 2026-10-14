@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/theme/design_tokens.dart';
 import '../../orders/presentation/orders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -12,109 +11,179 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colors = theme.colorScheme;
+    final openOrders =
+        onOpenOrders ??
+        () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const OrdersScreen()));
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Tôi')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: theme.dividerColor),
+      appBar: AppBar(title: const Text('Tài khoản')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFF86533), Color(0xFFE74726)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .22),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 34,
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.person_outline_rounded,
-                        size: 42,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Chào bạn đến với Lumi Market',
-                      style: theme.textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Đăng nhập và đồng bộ tài khoản đang được phát triển. '
-                      'Bạn có thể xem đơn hàng mẫu bên dưới.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.hintColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
-                      ),
-                      child: Text(
-                        'Chế độ trải nghiệm',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.secondary,
-                          fontWeight: FontWeight.w500,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Chào bạn đến với Lumi Market',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Trải nghiệm mua sắm mỗi ngày',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Đơn mua của tôi',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: openOrders,
+                child: const Text('Xem tất cả'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Material(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: openOrders,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.receipt_long_outlined,
+                        color: colors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Theo dõi đơn hàng',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Text(
+                            'Xem trạng thái và chi tiết đơn mua',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colors.onSurfaceVariant,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Material(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    side: BorderSide(color: theme.dividerColor),
-                  ),
-                  leading: Icon(
-                    Icons.receipt_long_outlined,
-                    color: colorScheme.secondary,
-                  ),
-                  title: const Text('Đơn mua'),
-                  subtitle: const Text('Xem đơn hàng trong bản demo'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap:
-                      onOpenOrders ??
-                      () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const OrdersScreen(),
-                        ),
-                      ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              if (onExplore != null)
-                FilledButton.icon(
-                  onPressed: onExplore,
-                  icon: const Icon(Icons.storefront_outlined),
-                  label: const Text('Tiếp tục mua sắm'),
-                ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 22),
+          Text(
+            'Dành cho bạn',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (onExplore != null)
+            Material(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(14),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                leading: Icon(Icons.storefront_outlined, color: colors.primary),
+                title: const Text('Tiếp tục mua sắm'),
+                subtitle: const Text('Khám phá sản phẩm mới và ưu đãi'),
+                trailing: const Icon(Icons.arrow_forward_rounded),
+                onTap: onExplore,
+              ),
+            ),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colors.secondaryContainer,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: colors.secondary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Bạn đang dùng bản trải nghiệm. Đơn hàng chỉ được lưu trong phiên này.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

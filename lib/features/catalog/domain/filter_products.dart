@@ -9,6 +9,7 @@ List<Product> filterProducts(
   String query = '',
   String? categoryId,
   ProductSort sortOrder = ProductSort.popular,
+  Map<String, double> ratingOverrides = const {},
 }) {
   final normalizedQuery = normalizeVietnameseSearchText(query);
   final matching = products.where((product) {
@@ -26,7 +27,9 @@ List<Product> filterProducts(
       ProductSort.popular => b.soldCount.compareTo(a.soldCount),
       ProductSort.priceAsc => a.price.compareTo(b.price),
       ProductSort.priceDesc => b.price.compareTo(a.price),
-      ProductSort.topRated => b.rating.compareTo(a.rating),
+      ProductSort.topRated => (ratingOverrides[b.id] ?? b.rating).compareTo(
+        ratingOverrides[a.id] ?? a.rating,
+      ),
     };
     return comparison == 0 ? a.id.compareTo(b.id) : comparison;
   });

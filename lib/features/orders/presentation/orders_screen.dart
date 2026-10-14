@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopingdemo/core/utils/money_formatter.dart';
 import 'package:shopingdemo/features/cart/domain/cart_line.dart';
-import 'package:shopingdemo/features/catalog/presentation/widgets/product_artwork.dart';
+import 'package:shopingdemo/features/catalog/presentation/widgets/product_image.dart';
 import 'package:shopingdemo/features/orders/domain/demo_order.dart';
 import 'package:shopingdemo/features/orders/presentation/providers/orders_provider.dart';
 import 'package:shopingdemo/features/payment/domain/payment_types.dart';
 import 'package:shopingdemo/features/payment/presentation/vietqr_payment_screen.dart';
 import 'package:shopingdemo/features/payment/presentation/vnpay_payment_screen.dart';
+import 'package:shopingdemo/features/reviews/presentation/providers/review_providers.dart';
+import 'package:shopingdemo/features/reviews/presentation/widgets/review_form_sheet.dart';
 
 class OrdersScreen extends ConsumerWidget {
   const OrdersScreen({super.key});
@@ -94,13 +96,13 @@ class _DemoNotice extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends ConsumerWidget {
   const _OrderCard({required this.order});
 
   final DemoOrder order;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final itemCount = order.items.fold<int>(
       0,
@@ -141,7 +143,12 @@ class _OrderCard extends StatelessWidget {
           const Divider(height: 16),
           for (var i = 0; i < order.items.length; i++) ...[
             if (i > 0) const SizedBox(height: 12),
-            _OrderLine(line: order.items[i]),
+            _OrderLine(
+              line: order.items[i],
+              completedOrderId: order.stage == OrderStage.completed
+                  ? order.id
+                  : null,
+            ),
           ],
           const Divider(height: 24),
           Row(
@@ -236,6 +243,22 @@ class _OrderCard extends StatelessWidget {
               ],
             ),
           ),
+          if (order.stage != OrderStage.completed &&
+              order.stage != OrderStage.canceled &&
+              (order.paymentMethod == PaymentMethod.cod ||
+                  order.paymentStatus == PaymentStatus.paid)) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => ref
+                    .read(ordersProvider.notifier)
+                    .completeDemoOrder(order.id),
+                icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                label: const Text('Mô phỏng nhận hàng'),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -267,47 +290,102 @@ class _StatusPill extends StatelessWidget {
   }
 }
 
-class _OrderLine extends StatelessWidget {
-  const _OrderLine({required this.line});
+class _OrderLine extends ConsumerWidget {
+  const _OrderLine({required this.line, this.completedOrderId});
 
   final CartLine line;
+  final String? completedOrderId;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderId = completedOrderId;
+    final reviews = orderId == null
+        ? null
+        : ref.watch(productReviewsProvider(line.product.id)).value;
+    final alreadyReviewed =
+        reviews?.any(
+          (review) =>
+              review.orderId == orderId && review.variantId == line.variant.id,
+        ) ??
+        false;
+    return Column(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: ProductArtwork(
-              emoji: line.product.emoji,
-              label: line.product.name,
-              compact: true,
+        Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: ProductImage(
+                  product: line.product,
+                  imageIndex: line.variant.imageIndex ?? 0,
+                  compact: true,
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                line.product.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    line.product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${line.variant.label} · x${line.quantity}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                '${line.variant.label} · x${line.quantity}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            Text(formatVnd(line.subtotal)),
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(formatVnd(line.subtotal)),
+        if (orderId != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: alreadyReviewed
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      'Đã đánh giá',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  )
+                : TextButton.icon(
+                    onPressed: reviews == null
+                        ? null
+                        : () async {
+                            final sent = await showReviewFormSheet(
+                              context,
+                              targets: [
+                                ProductReviewTarget(
+                                  orderId: orderId,
+                                  product: line.product,
+                                  variant: line.variant,
+                                ),
+                              ],
+                            );
+                            if (context.mounted && sent == true) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Đã gửi đánh giá của bạn'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                    icon: const Icon(Icons.rate_review_outlined, size: 16),
+                    label: const Text('Đánh giá'),
+                  ),
+          ),
       ],
     );
   }

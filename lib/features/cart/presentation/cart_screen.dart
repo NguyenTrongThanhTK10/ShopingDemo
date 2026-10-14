@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopingdemo/core/utils/money_formatter.dart';
 import 'package:shopingdemo/features/cart/domain/cart_line.dart';
 import 'package:shopingdemo/features/cart/presentation/providers/cart_provider.dart';
-import 'package:shopingdemo/features/catalog/presentation/widgets/product_artwork.dart';
+import 'package:shopingdemo/features/catalog/presentation/product_list_screen.dart';
+import 'package:shopingdemo/features/catalog/presentation/widgets/product_image.dart';
+import 'package:shopingdemo/features/catalog/presentation/widgets/quantity_stepper.dart';
 import 'package:shopingdemo/features/checkout/presentation/checkout_screen.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -73,7 +75,7 @@ class _InfoBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Chọn sản phẩm yêu thích và kiểm tra đơn trước khi đặt.',
+              'Kiểm tra sản phẩm và số lượng trước khi thanh toán.',
               style: TextStyle(color: colors.onPrimaryContainer),
             ),
           ),
@@ -161,9 +163,9 @@ class _CartLineTile extends ConsumerWidget {
             child: SizedBox(
               width: 68,
               height: 68,
-              child: ProductArtwork(
-                emoji: line.product.emoji,
-                label: line.product.name,
+              child: ProductImage(
+                product: line.product,
+                imageIndex: line.variant.imageIndex ?? 0,
                 compact: true,
               ),
             ),
@@ -209,7 +211,7 @@ class _CartLineTile extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                _QuantityControl(
+                QuantityStepper(
                   quantity: line.quantity,
                   stock: stock,
                   onChanged: (quantity) =>
@@ -217,47 +219,6 @@ class _CartLineTile extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuantityControl extends StatelessWidget {
-  const _QuantityControl({
-    required this.quantity,
-    required this.stock,
-    required this.onChanged,
-  });
-
-  final int quantity;
-  final int stock;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            tooltip: 'Giảm số lượng',
-            onPressed: quantity > 1 ? () => onChanged(quantity - 1) : null,
-            icon: const Icon(Icons.remove, size: 18),
-          ),
-          Text('$quantity', style: Theme.of(context).textTheme.labelLarge),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            tooltip: 'Tăng số lượng',
-            onPressed: quantity < stock ? () => onChanged(quantity + 1) : null,
-            icon: const Icon(Icons.add, size: 18),
           ),
         ],
       ),
@@ -343,6 +304,16 @@ class _EmptyCart extends StatelessWidget {
               'Khám phá sản phẩm và thêm món bạn thích vào giỏ hàng.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ProductListScreen(),
+                ),
+              ),
+              icon: const Icon(Icons.storefront_outlined),
+              label: const Text('Mua sắm ngay'),
             ),
           ],
         ),

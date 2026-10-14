@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopingdemo/core/utils/money_formatter.dart';
 import 'package:shopingdemo/features/cart/domain/cart_line.dart';
 import 'package:shopingdemo/features/cart/presentation/providers/cart_provider.dart';
-import 'package:shopingdemo/features/catalog/presentation/widgets/product_artwork.dart';
+import 'package:shopingdemo/features/catalog/presentation/widgets/product_image.dart';
 import 'package:shopingdemo/features/orders/presentation/order_success_screen.dart';
 import 'package:shopingdemo/features/orders/presentation/providers/orders_provider.dart';
 import 'package:shopingdemo/features/payment/domain/payment_types.dart';
@@ -492,9 +492,9 @@ class _CheckoutLine extends StatelessWidget {
           child: SizedBox(
             width: 52,
             height: 52,
-            child: ProductArtwork(
-              emoji: line.product.emoji,
-              label: line.product.name,
+            child: ProductImage(
+              product: line.product,
+              imageIndex: line.variant.imageIndex ?? 0,
               compact: true,
             ),
           ),

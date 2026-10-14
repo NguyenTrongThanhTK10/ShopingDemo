@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/money_formatter.dart';
+import '../../../reviews/presentation/providers/review_providers.dart';
 import '../../domain/product.dart';
 import 'product_image.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   const ProductCard({required this.product, required this.onTap, super.key});
 
   final Product product;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final summary = ref.watch(productReviewSummaryProvider(product.id));
+    final ratingLabel = summary == null
+        ? product.rating.toStringAsFixed(1)
+        : summary.count == 0
+        ? 'Mới'
+        : summary.average.toStringAsFixed(1);
     final oldPrice = product.oldPrice;
     final hasDiscount = oldPrice != null && oldPrice > product.price;
     final discount = oldPrice == null || oldPrice <= product.price
@@ -25,8 +33,8 @@ class ProductCard extends StatelessWidget {
       elevation: 0,
       color: colors.surface,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: colors.outlineVariant.withValues(alpha: .75)),
-        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant.withValues(alpha: .7)),
+        borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -41,23 +49,23 @@ class ProductCard extends StatelessWidget {
                   ProductImage(product: product, compact: true),
                   if (hasDiscount)
                     Positioned(
-                      top: 10,
-                      left: 10,
+                      top: 8,
+                      left: 8,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: colors.surface.withValues(alpha: .9),
-                          borderRadius: BorderRadius.circular(7),
+                          color: colors.primary,
+                          borderRadius: BorderRadius.circular(5),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 7,
-                            vertical: 4,
+                            vertical: 3,
                           ),
                           child: Text(
                             '-$discount%',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: colors.primary,
-                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -67,7 +75,7 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -77,19 +85,22 @@ class ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
-                      height: 1.3,
+                      height: 1.22,
                     ),
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    formatVnd(product.price),
-                    maxLines: 1,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w600,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      formatVnd(product.price),
+                      maxLines: 1,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                  SizedBox(height: hasDiscount ? 2 : 4),
                   if (hasDiscount)
                     Text(
                       formatVnd(oldPrice),
@@ -98,7 +109,7 @@ class ProductCard extends StatelessWidget {
                         color: colors.onSurfaceVariant,
                       ),
                     ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(
@@ -108,15 +119,15 @@ class ProductCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 2),
                       Text(
-                        product.rating.toStringAsFixed(1),
+                        ratingLabel,
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          'Đã bán ${product.soldCount}',
+                          '·  Đã bán ${product.soldCount}',
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colors.onSurfaceVariant,

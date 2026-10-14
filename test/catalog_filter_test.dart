@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shopingdemo/features/catalog/domain/filter_products.dart';
 import 'package:shopingdemo/features/catalog/domain/product.dart';
+import 'package:shopingdemo/features/catalog/domain/product_search_suggestions.dart';
 
 void main() {
   const products = <Product>[
@@ -69,6 +70,38 @@ void main() {
       ['tea'],
     );
     expect(filterProducts(products, query: 'tra', categoryId: 'home'), isEmpty);
+  });
+
+  test(
+    'suggestions match names and shops without marks and omit duplicates',
+    () {
+      expect(
+        productSearchSuggestions([
+          ...products,
+          products.first,
+        ], query: '  ca phe '),
+        ['Cà phê sữa', 'Tiệm Cà Phê'],
+      );
+      expect(productSearchSuggestions(products, query: 'nha moc'), ['Nhà Mộc']);
+      expect(productSearchSuggestions(products, query: '   '), isEmpty);
+      expect(productSearchSuggestions(products, query: 'xyz'), isEmpty);
+      expect(
+        productSearchSuggestions(products, query: 'ca phe', categoryId: 'home'),
+        isEmpty,
+      );
+    },
+  );
+
+  test('top rated sorting uses current review ratings when provided', () {
+    expect(
+      filterProducts(
+        products,
+        sortOrder: ProductSort.topRated,
+        ratingOverrides: {'coffee': 2, 'tea': 5, 'lamp': 4},
+      ).map((product) => product.id),
+      ['tea', 'lamp', 'coffee'],
+    );
+    expect(products.first.rating, 4.9);
   });
 
   test('sort orders are deterministic and do not mutate source', () {

@@ -39,10 +39,14 @@ void main() {
     expect(tester.takeException(), isNull, reason: 'home layout');
 
     expect(find.text('Được yêu thích'), findsOneWidget);
-    final firstProduct = find.text('Tai nghe không dây Melo Air').first;
-    await tester.ensureVisible(firstProduct);
+    final firstProduct = find.text('Tai nghe không dây Melo Air');
+    await tester.scrollUntilVisible(
+      firstProduct,
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(firstProduct);
+    await tester.tap(firstProduct.first);
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
@@ -51,15 +55,12 @@ void main() {
     expect(find.text('Chọn phân loại'), findsOneWidget);
     await tester.tap(find.text('Thêm vào giỏ'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('confirm-product-selection')));
+    await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.byTooltip('Mở giỏ hàng'),
-      -200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
+    expect(find.byTooltip('Mở giỏ hàng').hitTestable(), findsOneWidget);
     await tester.tap(find.byTooltip('Mở giỏ hàng'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'cart layout');

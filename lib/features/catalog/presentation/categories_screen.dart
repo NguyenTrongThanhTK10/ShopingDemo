@@ -21,22 +21,63 @@ class CategoriesScreen extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
+              padding: const EdgeInsets.fromLTRB(16, 22, 16, 14),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Danh mục',
+                      'Khám phá danh mục',
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Khám phá những điều hợp gu của bạn',
+                      'Tìm nhanh món bạn cần, chọn đúng gu bạn thích',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFE5D8), Color(0xFFFFF3E7)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 28,
+                            color: colors.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Mỗi ngày một điều mới',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: const Color(0xFFB63E22),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                Text(
+                                  'Từ công nghệ đến góc nhà xinh',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: const Color(0xFF51423D),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -53,7 +94,7 @@ class CategoriesScreen extends ConsumerWidget {
                       ),
                     )
                   : SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
                       sliver: SliverLayoutBuilder(
                         builder: (context, constraints) {
                           final columns = constraints.crossAxisExtent >= 720
@@ -64,9 +105,9 @@ class CategoriesScreen extends ConsumerWidget {
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: columns,
-                                  mainAxisSpacing: 14,
-                                  crossAxisSpacing: 14,
-                                  childAspectRatio: 1.13,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: .94,
                                 ),
                             itemBuilder: (context, index) =>
                                 _CategoryTile(category: items[index]),
@@ -109,7 +150,7 @@ class _CategoryTile extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(13),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -121,49 +162,66 @@ class _CategoryTile extends StatelessWidget {
             ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: 58,
-                height: 58,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: colors.secondaryContainer,
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: CategoryIcon(categoryId: category.id, size: 27),
+        child: Column(
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(_categoryImage(category.id), fit: BoxFit.cover),
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: colors.surface.withValues(alpha: .94),
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: CategoryIcon(categoryId: category.id, size: 18),
+                    ),
+                  ),
+                ],
               ),
-              Row(
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       category.name,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
                   Icon(
-                    Icons.arrow_outward_rounded,
-                    color: colors.onSurfaceVariant,
-                    size: 18,
+                    Icons.arrow_forward_rounded,
+                    color: colors.primary,
+                    size: 17,
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+String _categoryImage(String id) => switch (id) {
+  'tech' => 'assets/products/earbuds.jpg',
+  'fashion' => 'assets/products/linen-shirt.jpg',
+  'beauty' => 'assets/products/serum.jpg',
+  'home' => 'assets/products/lamp.jpg',
+  'lifestyle' => 'assets/products/tumbler.jpg',
+  _ => 'assets/products/coffee.jpg',
+};
 
 class _StatusView extends StatelessWidget {
   const _StatusView({required this.icon, required this.message, this.onRetry});

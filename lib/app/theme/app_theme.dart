@@ -12,29 +12,29 @@ abstract final class AppTheme {
     final surface = isDark ? AppColors.darkSurface : AppColors.white;
     final background = isDark ? AppColors.darkCanvas : AppColors.canvas;
     final foreground = isDark ? AppColors.white : AppColors.ink;
-    final muted = isDark ? const Color(0xFFADB9B3) : AppColors.muted;
+    final muted = isDark ? const Color(0xFFB2B7C0) : AppColors.muted;
     final outline = isDark ? AppColors.darkLine : AppColors.line;
     final colorScheme =
         ColorScheme.fromSeed(
           seedColor: AppColors.coral,
           brightness: brightness,
         ).copyWith(
-          primary: isDark ? const Color(0xFFE4A99B) : AppColors.coralDark,
-          onPrimary: isDark ? const Color(0xFF35211E) : AppColors.white,
+          primary: isDark ? const Color(0xFFFF8B69) : AppColors.coralDark,
+          onPrimary: isDark ? const Color(0xFF38190E) : AppColors.white,
           primaryContainer: isDark
-              ? const Color(0xFF503A35)
+              ? const Color(0xFF563026)
               : AppColors.coralSoft,
           onPrimaryContainer: isDark
-              ? const Color(0xFFF5DFD8)
+              ? const Color(0xFFFFD9CB)
               : AppColors.coralDark,
-          secondary: isDark ? const Color(0xFF9FC1B4) : AppColors.teal,
+          secondary: isDark ? const Color(0xFF9AD6CA) : AppColors.teal,
           secondaryContainer: isDark
-              ? const Color(0xFF304940)
+              ? const Color(0xFF294640)
               : AppColors.tealSoft,
           onSecondaryContainer: isDark
               ? const Color(0xFFD9EFE3)
               : const Color(0xFF3B665B),
-          tertiary: isDark ? const Color(0xFFD9B995) : const Color(0xFF9E7751),
+          tertiary: isDark ? const Color(0xFFFFC66B) : const Color(0xFFE99B28),
           tertiaryContainer: isDark
               ? const Color(0xFF4B4035)
               : const Color(0xFFF5EEE5),
@@ -48,7 +48,7 @@ abstract final class AppTheme {
           outlineVariant: outline,
           surfaceContainerLow: isDark
               ? const Color(0xFF2D3734)
-              : const Color(0xFFF7F5F2),
+              : const Color(0xFFF5F6F8),
         );
 
     final textTheme = ThemeData(useMaterial3: true, brightness: brightness)
@@ -57,19 +57,19 @@ abstract final class AppTheme {
         .copyWith(
           headlineLarge: TextStyle(
             fontSize: 29,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
             color: foreground,
           ),
           headlineMedium: TextStyle(
             fontSize: 23,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
             color: foreground,
           ),
           titleLarge: TextStyle(
             fontSize: 19,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
             color: foreground,
           ),
@@ -102,23 +102,42 @@ abstract final class AppTheme {
         centerTitle: false,
         titleTextStyle: textTheme.titleLarge,
       ),
+      cardTheme: CardThemeData(
+        color: surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: surface,
+        selectedColor: colorScheme.primaryContainer,
+        side: BorderSide(color: outline),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: colorScheme.primary,
+        unselectedLabelColor: muted,
+        indicatorColor: colorScheme.primary,
+        dividerColor: outline,
+        labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 46),
+          minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           textStyle: textTheme.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 46),
+          minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           side: BorderSide(color: outline),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           textStyle: textTheme.labelLarge,
         ),
@@ -131,11 +150,11 @@ abstract final class AppTheme {
           vertical: AppSpacing.sm,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           borderSide: BorderSide(color: outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           borderSide: BorderSide(color: outline),
         ),
       ),
@@ -143,8 +162,15 @@ abstract final class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surface,
         elevation: 0,
-        height: 68,
-        indicatorColor: colorScheme.primaryContainer,
+        height: 64,
+        indicatorColor: Colors.transparent,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? colorScheme.primary : muted,
+            size: 24,
+          );
+        }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
