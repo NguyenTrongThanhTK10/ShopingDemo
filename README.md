@@ -2,7 +2,21 @@
 
 ## Bản Flutter demo hiện có
 
-Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng mô phỏng → Đơn mua → Đánh giá. Có năm tab chính, trong đó Đơn mua lọc theo trạng thái đơn; Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng và đánh giá mới sẽ được đặt lại khi đóng ứng dụng.
+Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng mô phỏng → Đơn mua → Đánh giá. Có năm tab chính; tab **Live & Video** dành cho nội dung của shop, còn Đơn mua mở từ trang **Tôi**. Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng và đánh giá mới sẽ được đặt lại khi đóng ứng dụng.
+
+**Icon ứng dụng:** nền cam Lumi Market với túi mua sắm trắng và chữ L. Bộ icon Android (gồm adaptive icon), iOS, macOS, web và Windows được tạo bằng `swift tool/generate_app_icons.swift` từ cùng một bản vẽ để giữ kích thước nhất quán.
+
+**Live & Video:** mục Live có ba phiên quảng bá sản phẩm mô phỏng theo shop. Ảnh sản phẩm tự chuyển, có bình luận cục bộ, danh sách sản phẩm gắn trong phiên và luồng thêm vào giỏ bằng màn chọn phân loại hiện có. Mục Video vẫn hiển thị trạng thái chờ cùng gợi ý sản phẩm. Đây là bản mô phỏng bằng ảnh, chưa có luồng phát trực tiếp hoặc tệp video; cần nguồn nội dung và trình phát khi kết nối backend.
+
+**Thông báo:** tab Thông báo hiển thị sáu tin mẫu về đơn mua, gợi ý sản phẩm, live và tài khoản. Badge trên thanh điều hướng hiển thị số tin chưa đọc và biến mất khi đọc hết. Có thể lọc theo loại, mở màn liên quan và đánh dấu đã đọc; trạng thái chỉ giữ trong phiên sử dụng. Các mốc thời gian là nhãn minh họa, chưa có thông báo đẩy hoặc dữ liệu từ máy chủ.
+
+**Thẻ sản phẩm Trang chủ:** thẻ nhỏ hiển thị tối đa hai dòng tên, nơi gửi hàng và khoảng thời gian giao dự kiến. Địa điểm và thời gian là dữ liệu mẫu, chưa tính theo địa chỉ nhận hàng.
+
+**Chat với shop:** icon chat cạnh giỏ hàng ở Trang chủ mở trang **Lịch sử chat**, liệt kê các shop đã có tin nhắn theo thứ tự mới nhất. Có thể mở cùng trang từ **Tôi → Chat với shop**; mở hội thoại trực tiếp từ thông tin shop ở chi tiết sản phẩm hoặc giỏ hàng. Người mua có thể soạn và xem tin nhắn của mình cùng sản phẩm đang hỏi. Đây là chat mẫu trong bộ nhớ: tin nhắn chưa gửi tới người bán và sẽ mất khi đóng ứng dụng. Cần dịch vụ nhắn tin, xác thực người dùng và kênh dành cho người bán để chat hoạt động thật.
+
+**Tài khoản và cài đặt mua hàng:** trang **Tôi** có lối tắt theo trạng thái đơn, đánh giá, chat và thông báo. Trong **Địa chỉ nhận hàng**, người mua có thể lưu một bộ thông tin giao hàng mặc định; trong **Cài đặt thanh toán**, có thể chọn COD, VietQR hoặc VNPAY làm phương thức ưu tiên. Cả hai được điền sẵn ở Checkout và vẫn có thể sửa cho từng đơn. Đây là dữ liệu mẫu chỉ giữ trong phiên, không lưu thẻ hay tài khoản ngân hàng.
+
+**Chi tiết tài khoản:** chạm avatar hoặc tên ở header trang **Tôi** để xem tài khoản. Khách chưa có tài khoản có thể điền tên và số điện thoại để đăng ký tài khoản mẫu; sau đó có thể sửa thông tin hoặc trở về trạng thái khách. Dữ liệu chỉ giữ trong phiên, chưa xác thực số điện thoại và chưa tạo tài khoản trên máy chủ.
 
 **Đánh giá sản phẩm:** trang chi tiết hiển thị điểm trung bình, phân bố sao và nhận xét; màn hình xem tất cả hỗ trợ lọc 1–5 sao và tìm nội dung không dấu. Các nhận xét minh họa có nhãn “Mẫu”. Để thử viết đánh giá: đặt đơn COD (hoặc hoàn tất thanh toán mô phỏng), mở chi tiết đơn trong Đơn mua → **Mô phỏng nhận hàng** → **Đánh giá**. Mỗi phân loại trong một đơn đã hoàn thành được đánh giá một lần; nội dung cần 10–1.000 ký tự và 1–5 sao. Điểm sao trên thẻ sản phẩm, trang chi tiết và sắp xếp “Đánh giá tốt” được cập nhật theo các đánh giá hiện có. `filterProducts` có thêm tham số tùy chọn `ratingOverrides` để dùng điểm hiện tại; lời gọi cũ giữ cách sắp xếp theo `Product.rating`.
 
@@ -53,7 +67,7 @@ Xây dựng hệ thống gồm **ứng dụng khách mua hàng**, **kênh ngư�
 ## 2. Quy chuẩn UX/UI
 
 ### 2.1 Điều hướng chính
-Bottom navigation: **Trang chủ / Danh mục / Đơn mua / Thông báo / Tôi**. Giỏ hàng mở từ icon ở đầu trang chủ. Đơn mua có các tab Tất cả, Chờ thanh toán, Chờ xác nhận, Chờ lấy hàng, Đang giao, Hoàn thành, Đã hủy. Có thể đặt tab Chat riêng nếu nghiên cứu UX xác nhận. Luồng chính: Trang chủ → Danh sách/Tìm kiếm → Chi tiết sản phẩm → Chọn biến thể → Giỏ hàng hoặc Mua ngay → Checkout → Xác nhận đơn → Theo dõi.
+Bottom navigation: **Trang chủ / Danh mục / Live & Video / Thông báo / Tôi**. Giỏ hàng mở từ icon ở đầu trang chủ; Đơn mua mở từ trang Tôi. Đơn mua có các tab Tất cả, Chờ thanh toán, Chờ xác nhận, Chờ lấy hàng, Đang giao, Hoàn thành, Đã hủy. Có thể đặt tab Chat riêng nếu nghiên cứu UX xác nhận. Luồng chính: Trang chủ → Danh sách/Tìm kiếm → Chi tiết sản phẩm → Chọn biến thể → Giỏ hàng hoặc Mua ngay → Checkout → Xác nhận đơn → Theo dõi.
 
 ### 2.2 Danh sách màn hình
 | Module | Màn hình |

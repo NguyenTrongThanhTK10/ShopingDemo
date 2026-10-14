@@ -39,6 +39,8 @@ class ProductDto {
     required this.variants,
     this.imagePaths = const [],
     this.oldPrice,
+    this.shipFrom,
+    this.deliveryEstimate,
   });
 
   final String id;
@@ -46,6 +48,8 @@ class ProductDto {
   final String description;
   final String shopId;
   final String shopName;
+  final String? shipFrom;
+  final String? deliveryEstimate;
   final String categoryId;
   final int price;
   final int? oldPrice;
@@ -61,6 +65,8 @@ class ProductDto {
     description: description,
     shopId: shopId,
     shopName: shopName,
+    shipFrom: shipFrom,
+    deliveryEstimate: deliveryEstimate,
     categoryId: categoryId,
     price: price,
     oldPrice: oldPrice,

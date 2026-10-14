@@ -5,7 +5,7 @@ import 'package:shopingdemo/main.dart';
 
 void main() {
   testWidgets(
-    'compact home header keeps search and cart available while scrolling',
+    'compact home header keeps search, chat, and cart available while scrolling',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(320, 720));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -15,6 +15,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final cartButton = find.byTooltip('Mở giỏ hàng');
+      final chatButton = find.byTooltip('Mở lịch sử chat');
       final searchButton = find.byTooltip('Tìm kiếm sản phẩm');
       final header = find.byKey(const ValueKey('home-search-header'));
       final headerRect = tester.getRect(header);
@@ -22,8 +23,12 @@ void main() {
         find.byKey(const ValueKey('home-search')),
       );
       final cartRect = tester.getRect(cartButton);
+      final chatRect = tester.getRect(chatButton);
       expect(headerRect.height, lessThanOrEqualTo(64));
+      expect(chatRect.left, greaterThan(searchRect.right));
       expect(cartRect.left, greaterThan(searchRect.right));
+      expect(chatRect.overlaps(cartRect), isFalse);
+      expect(chatRect.center.dy, closeTo(searchRect.center.dy, 1));
       expect(cartRect.center.dy, closeTo(searchRect.center.dy, 1));
       await tester.drag(
         find.byKey(const ValueKey('home-feed')),
@@ -32,8 +37,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.getRect(header), headerRect);
       expect(cartButton.hitTestable(), findsOneWidget);
+      expect(chatButton.hitTestable(), findsOneWidget);
       expect(searchButton.hitTestable(), findsOneWidget);
       expect(cartButton, findsOneWidget);
+      await tester.tap(chatButton);
+      await tester.pumpAndSettle();
+      expect(find.text('Lịch sử chat'), findsOneWidget);
+      expect(find.text('Chưa có lịch sử chat'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(tester.getRect(header), headerRect);
       await tester.tap(cartButton);
       await tester.pumpAndSettle();
 
@@ -89,7 +102,7 @@ void main() {
       for (final label in [
         'Trang chủ',
         'Danh mục',
-        'Đơn mua',
+        'Live & Video',
         'Thông báo',
         'Tôi',
       ]) {
@@ -102,9 +115,41 @@ void main() {
         find.descendant(of: bar, matching: find.text('Giỏ hàng')),
         findsNothing,
       );
-      await tester.tap(
-        find.descendant(of: bar, matching: find.text('Đơn mua')),
+      expect(
+        tester
+            .getSize(
+              find.descendant(
+                of: bar,
+                matching: find.byIcon(Icons.live_tv_outlined),
+              ),
+            )
+            .width,
+        greaterThanOrEqualTo(28),
       );
+      await tester.tap(
+        find.descendant(of: bar, matching: find.text('Live & Video')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Phiên live mẫu'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('demo-live-melo-studio')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Video').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Chưa có video mới'), findsOneWidget);
+      if (width == 320) {
+        final recommendedProduct = find.text('Tai nghe không dây Melo Air');
+        await tester.ensureVisible(recommendedProduct);
+        await tester.tap(recommendedProduct);
+        await tester.pumpAndSettle();
+        expect(find.text('Chọn phân loại'), findsOneWidget);
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.descendant(of: bar, matching: find.text('Tôi')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Xem tất cả'));
       await tester.pumpAndSettle();
       expect(find.text('Tất cả'), findsOneWidget);
       expect(find.text('Chưa có đơn hàng'), findsOneWidget);

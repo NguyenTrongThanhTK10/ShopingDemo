@@ -10,6 +10,7 @@ import '../../catalog/presentation/product_list_screen.dart';
 import '../../catalog/presentation/providers/catalog_providers.dart';
 import '../../catalog/presentation/widgets/category_icon.dart';
 import '../../catalog/presentation/widgets/product_card.dart';
+import '../../chat/presentation/chat_inbox_screen.dart';
 import '../../voice_search/presentation/widgets/voice_search_button.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -44,6 +45,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  void _openChatInbox(BuildContext context) {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const ChatInboxScreen()));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -59,6 +65,7 @@ class HomeScreen extends ConsumerWidget {
             _HomeSearchHeader(
               cartCount: cartCount,
               onSearch: () => _openListing(context, search: true),
+              onOpenChat: () => _openChatInbox(context),
               onOpenCart: onOpenCart,
               onVoiceSearch: (query) =>
                   _openListing(context, initialQuery: query),
@@ -163,7 +170,7 @@ class HomeScreen extends ConsumerWidget {
                             message: 'Sản phẩm sẽ sớm xuất hiện.',
                           )
                         : SizedBox(
-                            height: 288,
+                            height: 266,
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -173,16 +180,17 @@ class HomeScreen extends ConsumerWidget {
                               separatorBuilder: (_, _) =>
                                   const SizedBox(width: 12),
                               itemBuilder: (context, index) => SizedBox(
-                                width: 176,
+                                width: 160,
                                 child: ProductCard(
                                   product: items[index],
+                                  compact: true,
                                   onTap: () =>
                                       _openProduct(context, items[index]),
                                 ),
                               ),
                             ),
                           ),
-                    loading: () => const _LoadingStrip(height: 288),
+                    loading: () => const _LoadingStrip(height: 266),
                     error: (_, _) => _InlineMessage(
                       message: 'Không tải được sản phẩm.',
                       onRetry: () => ref.invalidate(productsProvider),
@@ -217,10 +225,11 @@ class HomeScreen extends ConsumerWidget {
                                         crossAxisCount: columns,
                                         mainAxisSpacing: 10,
                                         crossAxisSpacing: 10,
-                                        childAspectRatio: .57,
+                                        childAspectRatio: .60,
                                       ),
                                   itemBuilder: (context, index) => ProductCard(
                                     product: items[index],
+                                    compact: true,
                                     onTap: () =>
                                         _openProduct(context, items[index]),
                                   ),
@@ -245,12 +254,14 @@ class _HomeSearchHeader extends StatelessWidget {
   const _HomeSearchHeader({
     required this.cartCount,
     required this.onSearch,
+    required this.onOpenChat,
     required this.onOpenCart,
     required this.onVoiceSearch,
   });
 
   final int cartCount;
   final VoidCallback onSearch;
+  final VoidCallback onOpenChat;
   final VoidCallback onOpenCart;
   final ValueChanged<String> onVoiceSearch;
 
@@ -258,9 +269,12 @@ class _HomeSearchHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final headerColor = theme.brightness == Brightness.dark
+        ? AppColors.profileHeaderDark
+        : AppColors.profileHeaderLight;
     return Material(
       key: const ValueKey('home-search-header'),
-      color: AppColors.coralDark,
+      color: headerColor,
       elevation: 1,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
@@ -326,6 +340,18 @@ class _HomeSearchHeader extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.shopping_cart_outlined),
               ),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              tooltip: 'Mở lịch sử chat',
+              onPressed: onOpenChat,
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: .14),
+                foregroundColor: Colors.white,
+                fixedSize: const Size(44, 44),
+                padding: EdgeInsets.zero,
+              ),
+              icon: const Icon(Icons.forum_rounded, size: 23),
             ),
           ],
         ),

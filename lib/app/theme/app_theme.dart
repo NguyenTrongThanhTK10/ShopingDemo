@@ -162,20 +162,20 @@ abstract final class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surface,
         elevation: 0,
-        height: 64,
+        height: 72,
         indicatorColor: Colors.transparent,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
             color: selected ? colorScheme.primary : muted,
-            size: 24,
+            size: 30,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
             color: selected ? colorScheme.primary : muted,
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
           );
         }),

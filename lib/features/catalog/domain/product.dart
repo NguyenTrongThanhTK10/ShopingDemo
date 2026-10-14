@@ -33,6 +33,8 @@ class Product {
     required this.variants,
     this.imagePaths = const [],
     this.oldPrice,
+    this.shipFrom,
+    this.deliveryEstimate,
   });
 
   final String id;
@@ -40,6 +42,12 @@ class Product {
   final String description;
   final String shopId;
   final String shopName;
+
+  /// Origin shown in the demo catalog, not the buyer's delivery address.
+  final String? shipFrom;
+
+  /// Approximate demo range; a real ETA depends on the buyer's address.
+  final String? deliveryEstimate;
   final String categoryId;
 
   /// Starting price in whole Vietnamese đồng.

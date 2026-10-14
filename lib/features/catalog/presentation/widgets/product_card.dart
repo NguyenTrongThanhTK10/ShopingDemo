@@ -7,10 +7,16 @@ import '../../domain/product.dart';
 import 'product_image.dart';
 
 class ProductCard extends ConsumerWidget {
-  const ProductCard({required this.product, required this.onTap, super.key});
+  const ProductCard({
+    required this.product,
+    required this.onTap,
+    this.compact = false,
+    super.key,
+  });
 
   final Product product;
   final VoidCallback onTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,7 +81,9 @@ class ProductCard extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+              padding: compact
+                  ? const EdgeInsets.fromLTRB(8, 6, 8, 7)
+                  : const EdgeInsets.fromLTRB(10, 8, 10, 9),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -86,9 +94,10 @@ class ProductCard extends ConsumerWidget {
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                       height: 1.22,
+                      fontSize: compact ? 12.5 : null,
                     ),
                   ),
-                  const SizedBox(height: 5),
+                  SizedBox(height: compact ? 3 : 5),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
@@ -98,6 +107,7 @@ class ProductCard extends ConsumerWidget {
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colors.primary,
                         fontWeight: FontWeight.w800,
+                        fontSize: compact ? 14 : null,
                       ),
                     ),
                   ),
@@ -109,12 +119,12 @@ class ProductCard extends ConsumerWidget {
                         color: colors.onSurfaceVariant,
                       ),
                     ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: compact ? 3 : 4),
                   Row(
                     children: [
                       Icon(
                         Icons.star_rounded,
-                        size: 14,
+                        size: compact ? 12 : 14,
                         color: colors.tertiary,
                       ),
                       const SizedBox(width: 2),
@@ -122,6 +132,7 @@ class ProductCard extends ConsumerWidget {
                         ratingLabel,
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w500,
+                          fontSize: compact ? 10 : null,
                         ),
                       ),
                       const SizedBox(width: 5),
@@ -131,16 +142,71 @@ class ProductCard extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colors.onSurfaceVariant,
+                            fontSize: compact ? 10 : null,
                           ),
                         ),
                       ),
                     ],
                   ),
+                  if (compact && product.shipFrom != null) ...[
+                    const SizedBox(height: 5),
+                    _ProductMetaLine(
+                      icon: Icons.location_on_outlined,
+                      label: product.shipFrom!,
+                      tooltip: 'Gửi từ ${product.shipFrom}',
+                    ),
+                  ],
+                  if (compact && product.deliveryEstimate != null) ...[
+                    const SizedBox(height: 2),
+                    _ProductMetaLine(
+                      icon: Icons.local_shipping_outlined,
+                      label: product.deliveryEstimate!,
+                      tooltip: 'Giao dự kiến ${product.deliveryEstimate}',
+                    ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProductMetaLine extends StatelessWidget {
+  const _ProductMetaLine({
+    required this.icon,
+    required this.label,
+    required this.tooltip,
+  });
+
+  final IconData icon;
+  final String label;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: tooltip,
+      child: Row(
+        children: [
+          Icon(icon, size: 12, color: colors.onSurfaceVariant),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontSize: 10.5,
+                height: 1.15,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

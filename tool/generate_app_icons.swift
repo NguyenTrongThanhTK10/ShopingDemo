@@ -1,114 +1,166 @@
-import AppKit
+// Run from the repository root: swift tool/generate_app_icons.swift
+// Lumi Market's original mark: a white shopping tote with an orange L.
+import CoreGraphics
 import Foundation
+import ImageIO
 
-// Run from the repository root with: swift tool/generate_app_icons.swift
-let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-let coral = NSColor(calibratedRed: 168 / 255, green: 94 / 255, blue: 82 / 255, alpha: 1)
+let fileManager = FileManager.default
+let root = URL(fileURLWithPath: fileManager.currentDirectoryPath)
+let orange = CGColor(
+  colorSpace: CGColorSpaceCreateDeviceRGB(),
+  components: [244 / 255, 90 / 255, 49 / 255, 1]
+)!
 
-func png(size: Int) -> Data {
-  let bitmap = NSBitmapImageRep(
-    bitmapDataPlanes: nil,
-    pixelsWide: size,
-    pixelsHigh: size,
-    bitsPerSample: 8,
-    samplesPerPixel: 4,
-    hasAlpha: true,
-    isPlanar: false,
-    colorSpaceName: .deviceRGB,
+func render(_ size: Int, transparent: Bool = false) -> Data {
+  let context = CGContext(
+    data: nil,
+    width: size,
+    height: size,
+    bitsPerComponent: 8,
     bytesPerRow: 0,
-    bitsPerPixel: 0
+    space: CGColorSpaceCreateDeviceRGB(),
+    bitmapInfo: (transparent
+      ? CGImageAlphaInfo.premultipliedLast
+      : CGImageAlphaInfo.noneSkipLast).rawValue
   )!
-  NSGraphicsContext.saveGraphicsState()
-  NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
-  let context = NSGraphicsContext.current!.cgContext
+  context.scaleBy(x: CGFloat(size) / 1024, y: CGFloat(size) / 1024)
   context.setAllowsAntialiasing(true)
   context.setShouldAntialias(true)
-  context.scaleBy(x: CGFloat(size) / 1024, y: CGFloat(size) / 1024)
+  context.interpolationQuality = .high
 
-  coral.setFill()
-  NSRect(x: 0, y: 0, width: 1024, height: 1024).fill()
+  if !transparent {
+    context.setFillColor(orange)
+    context.fill(CGRect(x: 0, y: 0, width: 1024, height: 1024))
+  }
 
-  NSColor.white.setFill()
-  NSColor.white.setStroke()
-  let basket = NSBezierPath()
-  basket.move(to: NSPoint(x: 350, y: 638))
-  basket.line(to: NSPoint(x: 770, y: 638))
-  basket.line(to: NSPoint(x: 711, y: 466))
-  basket.line(to: NSPoint(x: 391, y: 466))
-  basket.close()
-  basket.fill()
+  // The handle is drawn behind the bag so both sides meet the body cleanly.
+  context.setStrokeColor(CGColor(gray: 1, alpha: 1))
+  context.setLineWidth(56)
+  context.setLineCap(.round)
+  context.setLineJoin(.round)
+  context.move(to: CGPoint(x: 389, y: 620))
+  context.addLine(to: CGPoint(x: 389, y: 696))
+  context.addCurve(
+    to: CGPoint(x: 635, y: 696),
+    control1: CGPoint(x: 389, y: 795),
+    control2: CGPoint(x: 635, y: 795)
+  )
+  context.addLine(to: CGPoint(x: 635, y: 620))
+  context.strokePath()
 
-  let frame = NSBezierPath()
-  frame.lineWidth = 43
-  frame.lineCapStyle = .round
-  frame.lineJoinStyle = .round
-  frame.move(to: NSPoint(x: 250, y: 710))
-  frame.line(to: NSPoint(x: 326, y: 710))
-  frame.line(to: NSPoint(x: 403, y: 399))
-  frame.line(to: NSPoint(x: 725, y: 399))
-  frame.stroke()
+  let bag = CGPath(
+    roundedRect: CGRect(x: 269, y: 245, width: 486, height: 386),
+    cornerWidth: 70,
+    cornerHeight: 70,
+    transform: nil
+  )
+  context.addPath(bag)
+  context.setFillColor(CGColor(gray: 1, alpha: 1))
+  context.fillPath()
 
-  NSBezierPath(ovalIn: NSRect(x: 425, y: 278, width: 74, height: 74)).fill()
-  NSBezierPath(ovalIn: NSRect(x: 651, y: 278, width: 74, height: 74)).fill()
+  // The letter stays legible after the icon is reduced to launcher sizes.
+  context.setStrokeColor(orange)
+  context.setLineWidth(64)
+  context.setLineCap(.round)
+  context.setLineJoin(.round)
+  context.move(to: CGPoint(x: 452, y: 518))
+  context.addLine(to: CGPoint(x: 452, y: 364))
+  context.addLine(to: CGPoint(x: 583, y: 364))
+  context.strokePath()
 
-  NSGraphicsContext.restoreGraphicsState()
-  return bitmap.representation(using: .png, properties: [:])!
+  let output = NSMutableData()
+  let destination = CGImageDestinationCreateWithData(output, "public.png" as CFString, 1, nil)!
+  CGImageDestinationAddImage(destination, context.makeImage()!, nil)
+  precondition(CGImageDestinationFinalize(destination))
+  return output as Data
 }
 
-func write(_ relativePath: String, size: Int) throws {
-  let file = root.appendingPathComponent(relativePath)
-  try png(size: size).write(to: file)
+func write(_ data: Data, to relativePath: String) throws {
+  let destination = root.appendingPathComponent(relativePath)
+  try fileManager.createDirectory(
+    at: destination.deletingLastPathComponent(),
+    withIntermediateDirectories: true
+  )
+  try data.write(to: destination, options: .atomic)
 }
 
-let androidSizes = ["mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192]
-for (density, size) in androidSizes {
-  try write("android/app/src/main/res/mipmap-\(density)/ic_launcher.png", size: size)
+func iconEntries(at relativePath: String) throws -> [[String: String]] {
+  let data = try Data(contentsOf: root.appendingPathComponent(relativePath))
+  let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+  return json["images"] as! [[String: String]]
 }
 
 let iosDirectory = "ios/Runner/Assets.xcassets/AppIcon.appiconset"
-let iosContents = try Data(contentsOf: root.appendingPathComponent("\(iosDirectory)/Contents.json"))
-let iosJSON = try JSONSerialization.jsonObject(with: iosContents) as! [String: Any]
-for entry in iosJSON["images"] as! [[String: String]] {
-  guard let filename = entry["filename"], let points = entry["size"], let scale = entry["scale"] else { continue }
-  let pointSize = Double(points.split(separator: "x")[0])!
-  let scaleFactor = Double(scale.replacingOccurrences(of: "x", with: ""))!
-  try write("\(iosDirectory)/\(filename)", size: Int(pointSize * scaleFactor))
+for entry in try iconEntries(at: "\(iosDirectory)/Contents.json") {
+  guard let filename = entry["filename"],
+        let side = entry["size"]?.split(separator: "x").first,
+        let points = Double(side),
+        let scale = Double(entry["scale"]?.replacingOccurrences(of: "x", with: "") ?? "")
+  else { continue }
+  let pixels = Int((points * scale).rounded())
+  try write(render(pixels), to: "\(iosDirectory)/\(filename)")
 }
 
 let macDirectory = "macos/Runner/Assets.xcassets/AppIcon.appiconset"
-for size in [16, 32, 64, 128, 256, 512, 1024] {
-  try write("\(macDirectory)/app_icon_\(size).png", size: size)
+for entry in try iconEntries(at: "\(macDirectory)/Contents.json") {
+  guard let filename = entry["filename"],
+        let sizeText = filename.split(separator: "_").last?.split(separator: ".").first,
+        let pixels = Int(sizeText)
+  else { continue }
+  try write(render(pixels), to: "\(macDirectory)/\(filename)")
 }
 
-for size in [192, 512] {
-  try write("web/icons/Icon-\(size).png", size: size)
-  try write("web/icons/Icon-maskable-\(size).png", size: size)
+let androidSizes = [
+  "mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192
+]
+let adaptiveSizes = [
+  "mdpi": 108, "hdpi": 162, "xhdpi": 216, "xxhdpi": 324, "xxxhdpi": 432
+]
+for (density, pixels) in androidSizes {
+  try write(render(pixels),
+            to: "android/app/src/main/res/mipmap-\(density)/ic_launcher.png")
 }
-try write("web/favicon.png", size: 32)
+for (density, pixels) in adaptiveSizes {
+  try write(render(pixels, transparent: true),
+            to: "android/app/src/main/res/mipmap-\(density)/ic_launcher_foreground.png")
+}
 
+try write(render(192), to: "web/icons/Icon-192.png")
+try write(render(512), to: "web/icons/Icon-512.png")
+try write(render(192), to: "web/icons/Icon-maskable-192.png")
+try write(render(512), to: "web/icons/Icon-maskable-512.png")
+try write(render(64), to: "web/favicon.png")
+
+// A Windows ICO can contain PNG images for each resolution.
+func append16(_ value: Int, to data: inout Data) {
+  data.append(UInt8(value & 0xff))
+  data.append(UInt8((value >> 8) & 0xff))
+}
+func append32(_ value: Int, to data: inout Data) {
+  for shift in stride(from: 0, through: 24, by: 8) {
+    data.append(UInt8((value >> shift) & 0xff))
+  }
+}
 let windowsSizes = [16, 24, 32, 48, 64, 128, 256]
+let windowsImages = windowsSizes.map { render($0) }
 var ico = Data()
-func appendUInt16(_ value: Int) { ico.append(contentsOf: [UInt8(value & 0xff), UInt8((value >> 8) & 0xff)]) }
-func appendUInt32(_ value: Int) {
-  ico.append(contentsOf: (0..<4).map { UInt8((value >> ($0 * 8)) & 0xff) })
+append16(0, to: &ico)
+append16(1, to: &ico)
+append16(windowsImages.count, to: &ico)
+var offset = 6 + windowsImages.count * 16
+for (index, image) in windowsImages.enumerated() {
+  let pixels = windowsSizes[index]
+  ico.append(UInt8(pixels == 256 ? 0 : pixels))
+  ico.append(UInt8(pixels == 256 ? 0 : pixels))
+  ico.append(0) // palette size
+  ico.append(0) // reserved
+  append16(1, to: &ico) // color planes
+  append16(32, to: &ico) // bits per pixel
+  append32(image.count, to: &ico)
+  append32(offset, to: &ico)
+  offset += image.count
 }
-appendUInt16(0)
-appendUInt16(1)
-appendUInt16(windowsSizes.count)
-let windowsPNGs = windowsSizes.map { png(size: $0) }
-var offset = 6 + windowsSizes.count * 16
-for (index, size) in windowsSizes.enumerated() {
-  ico.append(UInt8(size == 256 ? 0 : size))
-  ico.append(UInt8(size == 256 ? 0 : size))
-  ico.append(0)
-  ico.append(0)
-  appendUInt16(1)
-  appendUInt16(32)
-  appendUInt32(windowsPNGs[index].count)
-  appendUInt32(offset)
-  offset += windowsPNGs[index].count
-}
-for data in windowsPNGs { ico.append(data) }
-try ico.write(to: root.appendingPathComponent("windows/runner/resources/app_icon.ico"))
+for image in windowsImages { ico.append(image) }
+try write(ico, to: "windows/runner/resources/app_icon.ico")
 
-print("Generated shopping cart app icons for Android, iOS, macOS, Windows, and web.")
+print("Generated Lumi Market app icons for Android, iOS, macOS, web and Windows.")

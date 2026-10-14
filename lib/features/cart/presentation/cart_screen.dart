@@ -6,6 +6,7 @@ import 'package:shopingdemo/features/cart/presentation/providers/cart_provider.d
 import 'package:shopingdemo/features/catalog/presentation/product_list_screen.dart';
 import 'package:shopingdemo/features/catalog/presentation/widgets/product_image.dart';
 import 'package:shopingdemo/features/catalog/presentation/widgets/quantity_stepper.dart';
+import 'package:shopingdemo/features/chat/presentation/chat_screen.dart';
 import 'package:shopingdemo/features/checkout/presentation/checkout_screen.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -30,6 +31,7 @@ class CartScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       for (final shop in _groupByShop(cart.items).entries) ...[
                         _ShopCartCard(
+                          shopId: shop.key,
                           shopName: shop.value.first.product.shopName,
                           lines: shop.value,
                         ),
@@ -86,8 +88,13 @@ class _InfoBanner extends StatelessWidget {
 }
 
 class _ShopCartCard extends StatelessWidget {
-  const _ShopCartCard({required this.shopName, required this.lines});
+  const _ShopCartCard({
+    required this.shopId,
+    required this.shopName,
+    required this.lines,
+  });
 
+  final String shopId;
   final String shopName;
   final List<CartLine> lines;
 
@@ -118,6 +125,20 @@ class _ShopCartCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                IconButton(
+                  tooltip: 'Chat với $shopName',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ChatScreen(
+                        shopId: shopId,
+                        shopName: shopName,
+                        product: lines.first.product,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.forum_rounded),
                 ),
                 Text(
                   '${lines.length} sản phẩm',

@@ -9,8 +9,10 @@ import 'package:shopingdemo/features/catalog/presentation/widgets/product_image.
 import 'package:shopingdemo/features/orders/presentation/order_success_screen.dart';
 import 'package:shopingdemo/features/orders/presentation/providers/orders_provider.dart';
 import 'package:shopingdemo/features/payment/domain/payment_types.dart';
+import 'package:shopingdemo/features/payment/presentation/providers/payment_preferences_provider.dart';
 import 'package:shopingdemo/features/payment/presentation/vietqr_payment_screen.dart';
 import 'package:shopingdemo/features/payment/presentation/vnpay_payment_screen.dart';
+import 'package:shopingdemo/features/profile/presentation/providers/delivery_details_provider.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -24,8 +26,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _recipientController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  PaymentMethod _selectedPaymentMethod = PaymentMethod.vietQr;
+  late PaymentMethod _selectedPaymentMethod;
   bool _placingOrder = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPaymentMethod = ref.read(preferredPaymentMethodProvider);
+    final deliveryDetails = ref.read(deliveryDetailsProvider);
+    if (deliveryDetails != null) {
+      _recipientController.text = deliveryDetails.recipient;
+      _phoneController.text = deliveryDetails.phone;
+      _addressController.text = deliveryDetails.address;
+    }
+  }
 
   @override
   void dispose() {

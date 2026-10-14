@@ -12,13 +12,18 @@ import 'package:shopingdemo/features/reviews/presentation/providers/review_provi
 import 'package:shopingdemo/features/reviews/presentation/widgets/review_form_sheet.dart';
 
 class OrdersScreen extends ConsumerWidget {
-  const OrdersScreen({super.key});
+  const OrdersScreen({super.key, this.initialStage});
+
+  final OrderStage? initialStage;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(ordersProvider);
     return DefaultTabController(
       length: OrderStage.values.length + 1,
+      initialIndex: initialStage == null
+          ? 0
+          : OrderStage.values.indexOf(initialStage!) + 1,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Đơn mua'),

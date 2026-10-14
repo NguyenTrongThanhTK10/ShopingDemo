@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme/design_tokens.dart';
 import '../domain/category.dart';
 import 'product_list_screen.dart';
 import 'providers/catalog_providers.dart';
@@ -13,6 +14,9 @@ class CategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final headerColor = theme.brightness == Brightness.dark
+        ? AppColors.profileHeaderDark
+        : AppColors.profileHeaderLight;
     final categories = ref.watch(categoriesProvider);
 
     return SafeArea(
@@ -20,67 +24,75 @@ class CategoriesScreen extends ConsumerWidget {
         color: theme.scaffoldBackgroundColor,
         child: CustomScrollView(
           slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 22, 16, 14),
-              sliver: SliverToBoxAdapter(
+            SliverToBoxAdapter(
+              child: Container(
+                key: const ValueKey('categories-header'),
+                width: double.infinity,
+                color: headerColor,
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Khám phá danh mục',
                       style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Tìm nhanh món bạn cần, chọn đúng gu bạn thích',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFE5D8), Color(0xFFFFF3E7)],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.auto_awesome_rounded,
-                            size: 28,
-                            color: colors.primary,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Mỗi ngày một điều mới',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: const Color(0xFFB63E22),
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                Text(
-                                  'Từ công nghệ đến góc nhà xinh',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: const Color(0xFF51423D),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        color: Colors.white.withValues(alpha: .94),
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              sliver: SliverToBoxAdapter(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFE5D8), Color(0xFFFFF3E7)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 28,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Mỗi ngày một điều mới',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: const Color(0xFFB63E22),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              'Từ công nghệ đến góc nhà xinh',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: const Color(0xFF51423D),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/money_formatter.dart';
 import '../../cart/presentation/cart_screen.dart';
 import '../../cart/presentation/providers/cart_provider.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../../reviews/presentation/providers/review_providers.dart';
 import '../../reviews/presentation/widgets/product_reviews_section.dart';
 import '../domain/product.dart';
@@ -362,6 +363,20 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
+                          IconButton(
+                            key: const ValueKey('chat-with-shop'),
+                            tooltip: 'Chat với shop',
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => ChatScreen(
+                                  shopId: product.shopId,
+                                  shopName: product.shopName,
+                                  product: product,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.forum_rounded),
+                          ),
                           OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(

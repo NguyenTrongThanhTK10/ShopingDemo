@@ -5,6 +5,8 @@ abstract final class AppColors {
   static const coral = Color(0xFFF45A31);
   static const coralDark = Color(0xFFE84B26);
   static const coralSoft = Color(0xFFFFEDE7);
+  static const profileHeaderLight = Color(0xFFF26540);
+  static const profileHeaderDark = Color(0xFFC74526);
   static const teal = Color(0xFF276D68);
   static const tealSoft = Color(0xFFE8F5F1);
   static const ink = Color(0xFF22252B);
