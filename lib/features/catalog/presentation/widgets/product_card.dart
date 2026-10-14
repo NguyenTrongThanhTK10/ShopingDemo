@@ -33,6 +33,11 @@ class ProductCard extends ConsumerWidget {
     final discount = oldPrice == null || oldPrice <= product.price
         ? 0
         : ((oldPrice - product.price) * 100 / oldPrice).round();
+    final shippingTooltip = [
+      if (product.deliveryEstimate != null)
+        'Giao dự kiến ${product.deliveryEstimate}',
+      if (product.shipFrom != null) 'Gửi từ ${product.shipFrom}',
+    ].join(' · ');
 
     return Card(
       margin: EdgeInsets.zero,
@@ -148,20 +153,12 @@ class ProductCard extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  if (compact && product.shipFrom != null) ...[
+                  if (shippingTooltip.isNotEmpty) ...[
                     const SizedBox(height: 5),
                     _ProductMetaLine(
-                      icon: Icons.location_on_outlined,
-                      label: product.shipFrom!,
-                      tooltip: 'Gửi từ ${product.shipFrom}',
-                    ),
-                  ],
-                  if (compact && product.deliveryEstimate != null) ...[
-                    const SizedBox(height: 2),
-                    _ProductMetaLine(
-                      icon: Icons.local_shipping_outlined,
-                      label: product.deliveryEstimate!,
-                      tooltip: 'Giao dự kiến ${product.deliveryEstimate}',
+                      deliveryEstimate: product.deliveryEstimate,
+                      shipFrom: product.shipFrom,
+                      tooltip: shippingTooltip,
                     ),
                   ],
                 ],
@@ -176,33 +173,45 @@ class ProductCard extends ConsumerWidget {
 
 class _ProductMetaLine extends StatelessWidget {
   const _ProductMetaLine({
-    required this.icon,
-    required this.label,
+    required this.deliveryEstimate,
+    required this.shipFrom,
     required this.tooltip,
   });
 
-  final IconData icon;
-  final String label;
+  final String? deliveryEstimate;
+  final String? shipFrom;
   final String tooltip;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final labelStyle = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(fontSize: 10, height: 1.15, color: colors.onSurfaceVariant);
     return Tooltip(
       message: tooltip,
       child: Row(
         children: [
-          Icon(icon, size: 12, color: colors.onSurfaceVariant),
-          const SizedBox(width: 4),
           Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontSize: 10.5,
-                height: 1.15,
-                color: colors.onSurfaceVariant,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (deliveryEstimate != null)
+                    Text(deliveryEstimate!, maxLines: 1, style: labelStyle),
+                  if (deliveryEstimate != null && shipFrom != null)
+                    Text(' · ', style: labelStyle),
+                  if (shipFrom != null) ...[
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 12,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(shipFrom!, maxLines: 1, style: labelStyle),
+                  ],
+                ],
               ),
             ),
           ),

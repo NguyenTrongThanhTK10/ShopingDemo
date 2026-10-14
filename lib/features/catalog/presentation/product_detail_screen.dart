@@ -218,13 +218,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 12),
-                child: Badge(
-                  isLabelVisible: cartCount > 0,
-                  label: Text(cartCount > 99 ? '99+' : '$cartCount'),
-                  child: IconButton(
-                    tooltip: 'Mở giỏ hàng',
-                    onPressed: _openCart,
-                    icon: const Icon(Icons.shopping_cart_outlined),
+                child: IconButton(
+                  tooltip: 'Mở giỏ hàng',
+                  onPressed: _openCart,
+                  icon: Badge(
+                    isLabelVisible: cartCount > 0,
+                    label: Text(cartCount > 99 ? '99+' : '$cartCount'),
+                    child: const Icon(Icons.shopping_cart_outlined),
                   ),
                 ),
               ),

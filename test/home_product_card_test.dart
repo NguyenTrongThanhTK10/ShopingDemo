@@ -38,23 +38,67 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.getSize(find.byType(ProductCard)), size);
-      final origin = find.text('TP.HCM');
       final delivery = find.text('2–4 ngày');
-      expect(origin, findsOneWidget);
+      final location = find.text('TP.HCM');
+      final shipping = find.byTooltip('Giao dự kiến 2–4 ngày · Gửi từ TP.HCM');
+      final locationIcon = find.descendant(
+        of: shipping,
+        matching: find.byIcon(Icons.location_on_outlined),
+      );
       expect(delivery, findsOneWidget);
-      expect(find.byTooltip('Gửi từ TP.HCM'), findsOneWidget);
-      expect(find.byTooltip('Giao dự kiến 2–4 ngày'), findsOneWidget);
+      expect(location, findsOneWidget);
+      expect(shipping, findsOneWidget);
+      expect(locationIcon, findsOneWidget);
       expect(
-        tester.renderObject<RenderParagraph>(origin).didExceedMaxLines,
-        isFalse,
+        tester.getRect(delivery).right,
+        lessThan(tester.getRect(locationIcon).left),
       );
       expect(
-        tester.renderObject<RenderParagraph>(delivery).didExceedMaxLines,
+        tester.getRect(locationIcon).right,
+        lessThan(tester.getRect(location).left),
+      );
+      expect(tester.getCenter(delivery).dy, tester.getCenter(location).dy);
+      expect(
+        tester.renderObject<RenderParagraph>(location).didExceedMaxLines,
         isFalse,
-        reason: 'delivery label at $size',
+        reason: 'shipping details at $size',
       );
       expect(tester.widget<Text>(find.text(product.name)).maxLines, 2);
       expect(tester.takeException(), isNull, reason: 'compact card at $size');
     }
+  });
+
+  testWidgets('catalog card keeps origin and delivery on one line', (
+    tester,
+  ) async {
+    final product = MockCatalogDataSource.products.first.toEntity();
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 139,
+                height: 244,
+                child: ProductCard(product: product, onTap: () {}),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+
+    final delivery = find.text('2–4 ngày');
+    final location = find.text('TP.HCM');
+    expect(delivery, findsOneWidget);
+    expect(location, findsOneWidget);
+    expect(
+      tester.renderObject<RenderParagraph>(location).didExceedMaxLines,
+      isFalse,
+    );
+    expect(tester.takeException(), isNull);
   });
 }

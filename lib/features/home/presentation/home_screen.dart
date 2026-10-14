@@ -325,20 +325,17 @@ class _HomeSearchHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Badge(
-              isLabelVisible: cartCount > 0,
-              label: Text(cartCount > 99 ? '99+' : '$cartCount'),
-              backgroundColor: colors.surface,
-              textColor: colors.primary,
-              child: IconButton(
-                tooltip: 'Mở giỏ hàng',
-                onPressed: onOpenCart,
-                color: Colors.white,
-                constraints: const BoxConstraints.tightFor(
-                  width: 48,
-                  height: 48,
-                ),
-                icon: const Icon(Icons.shopping_cart_outlined),
+            IconButton(
+              tooltip: 'Mở giỏ hàng',
+              onPressed: onOpenCart,
+              color: Colors.white,
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              icon: Badge(
+                isLabelVisible: cartCount > 0,
+                label: Text(cartCount > 99 ? '99+' : '$cartCount'),
+                backgroundColor: colors.surface,
+                textColor: colors.primary,
+                child: const Icon(Icons.shopping_cart_outlined),
               ),
             ),
             const SizedBox(width: 4),

@@ -401,18 +401,18 @@ class _DemoLiveRoomScreenState extends ConsumerState<DemoLiveRoomScreen> {
                       onPressed: _showProducts,
                       icon: const Icon(Icons.shopping_bag_outlined),
                     ),
-                    Badge(
-                      isLabelVisible: cartCount > 0,
-                      label: Text('$cartCount'),
-                      child: IconButton(
-                        key: const ValueKey('live-cart-button'),
-                        tooltip: 'Mở giỏ hàng',
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const CartScreen(),
-                          ),
+                    IconButton(
+                      key: const ValueKey('live-cart-button'),
+                      tooltip: 'Mở giỏ hàng',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const CartScreen(),
                         ),
-                        icon: const Icon(Icons.shopping_cart_outlined),
+                      ),
+                      icon: Badge(
+                        isLabelVisible: cartCount > 0,
+                        label: Text('$cartCount'),
+                        child: const Icon(Icons.shopping_cart_outlined),
                       ),
                     ),
                   ],
