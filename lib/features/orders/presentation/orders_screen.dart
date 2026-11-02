@@ -11,22 +11,61 @@ import 'package:shopingdemo/features/payment/presentation/vnpay_payment_screen.d
 import 'package:shopingdemo/features/reviews/presentation/providers/review_providers.dart';
 import 'package:shopingdemo/features/reviews/presentation/widgets/review_form_sheet.dart';
 
-class OrdersScreen extends ConsumerWidget {
+import 'widgets/order_actions.dart';
+import 'widgets/order_timeline.dart';
+import '../../catalog/domain/filter_products.dart';
+
+class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key, this.initialStage});
 
   final OrderStage? initialStage;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orders = ref.watch(ordersProvider);
+  ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends ConsumerState<OrdersScreen> {
+  String _query = '';
+  bool _searching = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final query = normalizeVietnameseSearchText(_query);
+    final orders = ref
+        .watch(ordersProvider)
+        .where(
+          (order) => normalizeVietnameseSearchText(
+            '${order.id} ${order.recipient} ${order.items.map((line) => line.product.name).join(' ')}',
+          ).contains(query),
+        )
+        .toList();
     return DefaultTabController(
       length: OrderStage.values.length + 1,
-      initialIndex: initialStage == null
+      initialIndex: widget.initialStage == null
           ? 0
-          : OrderStage.values.indexOf(initialStage!) + 1,
+          : OrderStage.values.indexOf(widget.initialStage!) + 1,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Đơn mua'),
+          title: _searching
+              ? TextField(
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: 'Mã đơn, tên sản phẩm...',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                )
+              : const Text('Đơn mua'),
+          actions: [
+            IconButton(
+              tooltip: _searching ? 'Đóng tìm kiếm' : 'Tìm đơn hàng',
+              onPressed: () => setState(() {
+                _searching = !_searching;
+                _query = '';
+              }),
+              icon: Icon(_searching ? Icons.close : Icons.search),
+            ),
+          ],
           bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
@@ -38,11 +77,12 @@ class OrdersScreen extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            _OrdersTab(orders: orders),
+            _OrdersTab(orders: orders, searching: query.isNotEmpty),
             for (final stage in OrderStage.values)
               _OrdersTab(
                 orders: orders.where((order) => order.stage == stage).toList(),
                 stage: stage,
+                searching: query.isNotEmpty,
               ),
           ],
         ),
@@ -52,14 +92,15 @@ class OrdersScreen extends ConsumerWidget {
 }
 
 class _OrdersTab extends StatelessWidget {
-  const _OrdersTab({required this.orders, this.stage});
+  const _OrdersTab({required this.orders, this.stage, this.searching = false});
 
   final List<DemoOrder> orders;
   final OrderStage? stage;
+  final bool searching;
 
   @override
   Widget build(BuildContext context) {
-    if (orders.isEmpty) return _EmptyOrders(stage: stage);
+    if (orders.isEmpty) return _EmptyOrders(stage: stage, searching: searching);
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -156,6 +197,14 @@ class _OrderCard extends ConsumerWidget {
             ),
           ],
           const Divider(height: 24),
+          _OrderAmount(label: 'Tiền hàng', amount: order.subtotal),
+          _OrderAmount(label: 'Phí giao hàng', amount: order.shippingFee),
+          if (order.discount > 0)
+            _OrderAmount(
+              label: 'Ưu đãi ${order.voucherCode}',
+              amount: -order.discount,
+            ),
+          const SizedBox(height: 8),
           Row(
             children: [
               const Expanded(child: Text('Tổng thanh toán')),
@@ -185,6 +234,15 @@ class _OrderCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
+          if (order.note.isNotEmpty) ...[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Ghi chú: ${order.note}'),
+            ),
+            const SizedBox(height: 12),
+          ],
+          OrderTimeline(order: order),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -218,7 +276,7 @@ class _OrderCard extends ConsumerWidget {
                   ),
                 ),
                 if (order.stage == OrderStage.awaitingPayment &&
-                    order.paymentStatus == PaymentStatus.pending &&
+                    order.paymentStatus != PaymentStatus.paid &&
                     order.paymentMethod != PaymentMethod.cod)
                   FilledButton.tonal(
                     style: FilledButton.styleFrom(
@@ -264,6 +322,8 @@ class _OrderCard extends ConsumerWidget {
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          OrderActions(order: order),
         ],
       ),
     );
@@ -281,18 +341,48 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: colors.tertiaryContainer,
+        color: status == OrderStage.completed.label
+            ? colors.secondaryContainer
+            : status == OrderStage.canceled.label
+            ? colors.surfaceContainerLow
+            : colors.primaryContainer,
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
         status,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: colors.onTertiaryContainer,
+          color: status == OrderStage.completed.label
+              ? colors.onSecondaryContainer
+              : status == OrderStage.canceled.label
+              ? colors.onSurfaceVariant
+              : colors.onPrimaryContainer,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
+}
+
+class _OrderAmount extends StatelessWidget {
+  const _OrderAmount({required this.label, required this.amount});
+  final String label;
+  final int amount;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ),
+        Text(
+          amount < 0 ? '-${formatVnd(-amount)}' : formatVnd(amount),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    ),
+  );
 }
 
 class _OrderLine extends ConsumerWidget {
@@ -397,9 +487,10 @@ class _OrderLine extends ConsumerWidget {
 }
 
 class _EmptyOrders extends StatelessWidget {
-  const _EmptyOrders({this.stage});
+  const _EmptyOrders({this.stage, this.searching = false});
 
   final OrderStage? stage;
+  final bool searching;
 
   @override
   Widget build(BuildContext context) {
@@ -413,7 +504,9 @@ class _EmptyOrders extends StatelessWidget {
             Icon(Icons.receipt_long_outlined, size: 72, color: colors.primary),
             const SizedBox(height: 16),
             Text(
-              stage == null
+              searching
+                  ? 'Không tìm thấy đơn phù hợp'
+                  : stage == null
                   ? 'Chưa có đơn hàng'
                   : 'Chưa có đơn ${stage!.label.toLowerCase()}',
               style: Theme.of(context).textTheme.titleLarge,
@@ -421,7 +514,9 @@ class _EmptyOrders extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              stage == null
+              searching
+                  ? 'Thử tìm theo mã đơn hoặc tên sản phẩm khác.'
+                  : stage == null
                   ? 'Các đơn hàng mẫu đã đặt sẽ xuất hiện tại đây trong phiên sử dụng.'
                   : 'Đơn hàng ở trạng thái này sẽ xuất hiện tại đây.',
               textAlign: TextAlign.center,

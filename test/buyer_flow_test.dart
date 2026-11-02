@@ -13,7 +13,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'narrow home layout');
 
-    final firstProduct = find.text('Tai nghe không dây Melo Air');
+    final firstProduct = find.descendant(
+      of: find.byKey(const ValueKey('home-featured-products')),
+      matching: find.text('Tai nghe không dây Melo Air'),
+    );
     await tester.scrollUntilVisible(
       firstProduct,
       220,
@@ -38,8 +41,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'home layout');
 
+    await tester.scrollUntilVisible(
+      find.text('Được yêu thích'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Được yêu thích'), findsOneWidget);
-    final firstProduct = find.text('Tai nghe không dây Melo Air');
+    final firstProduct = find.descendant(
+      of: find.byKey(const ValueKey('home-featured-products')),
+      matching: find.text('Tai nghe không dây Melo Air'),
+    );
     await tester.scrollUntilVisible(
       firstProduct,
       220,

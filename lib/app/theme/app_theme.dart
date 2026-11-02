@@ -106,7 +106,7 @@ abstract final class AppTheme {
         color: surface,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surface,
@@ -163,12 +163,12 @@ abstract final class AppTheme {
         backgroundColor: surface,
         elevation: 0,
         height: 72,
-        indicatorColor: Colors.transparent,
+        indicatorColor: colorScheme.primaryContainer,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
             color: selected ? colorScheme.primary : muted,
-            size: 30,
+            size: 28,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -190,6 +190,17 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelTextStyle: TextStyle(color: muted),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

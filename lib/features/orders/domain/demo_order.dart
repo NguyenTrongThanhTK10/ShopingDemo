@@ -1,5 +1,12 @@
 import '../../cart/domain/cart_line.dart';
 import '../../payment/domain/payment_types.dart';
+import '../../checkout/domain/checkout_quote.dart';
+
+class OrderEvent {
+  const OrderEvent({required this.label, required this.at});
+  final String label;
+  final DateTime at;
+}
 
 enum OrderStage {
   awaitingPayment('Chờ thanh toán'),
@@ -26,6 +33,13 @@ class DemoOrder {
     required this.status,
     this.paymentMethod = PaymentMethod.cod,
     this.paymentStatus = PaymentStatus.pending,
+    this.delivery = DeliveryOption.standard,
+    this.shippingFee = 0,
+    this.discount = 0,
+    this.voucherCode,
+    this.note = '',
+    this.cancellationReason,
+    this.events = const [],
   });
 
   final String id;
@@ -38,6 +52,21 @@ class DemoOrder {
   final String status;
   final PaymentMethod paymentMethod;
   final PaymentStatus paymentStatus;
+  final DeliveryOption delivery;
+  final int shippingFee;
+  final int discount;
+  final String? voucherCode;
+  final String note;
+  final String? cancellationReason;
+  final List<OrderEvent> events;
+
+  int get subtotal => items.fold(0, (sum, item) => sum + item.subtotal);
+
+  // Paid-order refunds require a backend and are outside this local demo.
+  bool get canCancel =>
+      paymentStatus != PaymentStatus.paid &&
+      (stage == OrderStage.awaitingPayment ||
+          stage == OrderStage.awaitingConfirmation);
 
   /// Payment completion still leaves the order waiting for confirmation.
   OrderStage get stage {
@@ -75,6 +104,8 @@ class DemoOrder {
     String? status,
     PaymentMethod? paymentMethod,
     PaymentStatus? paymentStatus,
+    String? cancellationReason,
+    List<OrderEvent>? events,
   }) {
     return DemoOrder(
       id: id ?? this.id,
@@ -87,6 +118,13 @@ class DemoOrder {
       status: status ?? this.status,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      delivery: delivery,
+      shippingFee: shippingFee,
+      discount: discount,
+      voucherCode: voucherCode,
+      note: note,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+      events: events ?? this.events,
     );
   }
 }

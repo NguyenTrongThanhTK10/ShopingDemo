@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/money_formatter.dart';
 import '../../../reviews/presentation/providers/review_providers.dart';
+import '../../../wishlist/presentation/providers/wishlist_provider.dart';
 import '../../domain/product.dart';
 import 'product_image.dart';
 
@@ -22,6 +23,7 @@ class ProductCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final favorite = ref.watch(wishlistProvider).contains(product.id);
     final summary = ref.watch(productReviewSummaryProvider(product.id));
     final ratingLabel = summary == null
         ? product.rating.toStringAsFixed(1)
@@ -58,6 +60,29 @@ class ProductCard extends ConsumerWidget {
                 fit: StackFit.expand,
                 children: [
                   ProductImage(product: product, compact: true),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: IconButton.filledTonal(
+                      tooltip: favorite ? 'Bỏ yêu thích' : 'Yêu thích sản phẩm',
+                      isSelected: favorite,
+                      style: IconButton.styleFrom(
+                        backgroundColor: colors.surface.withValues(alpha: .94),
+                        foregroundColor: colors.primary,
+                        minimumSize: const Size(40, 40),
+                        maximumSize: const Size(40, 40),
+                        iconSize: 20,
+                      ),
+                      onPressed: () => ref
+                          .read(wishlistProvider.notifier)
+                          .toggle(product.id),
+                      icon: Icon(
+                        favorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                      ),
+                    ),
+                  ),
                   if (hasDiscount)
                     Positioned(
                       top: 8,

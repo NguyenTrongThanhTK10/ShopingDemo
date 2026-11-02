@@ -12,6 +12,12 @@ import '../../catalog/presentation/widgets/category_icon.dart';
 import '../../catalog/presentation/widgets/product_card.dart';
 import '../../chat/presentation/chat_inbox_screen.dart';
 import '../../voice_search/presentation/widgets/voice_search_button.dart';
+import '../../checkout/presentation/vouchers_screen.dart';
+import '../../orders/presentation/orders_screen.dart';
+import '../../wishlist/presentation/wishlist_screen.dart';
+import '../../profile/presentation/providers/demo_account_provider.dart';
+import '../../profile/presentation/providers/delivery_details_provider.dart';
+import '../../profile/presentation/delivery_details_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onOpenCart});
@@ -75,6 +81,64 @@ class HomeScreen extends ConsumerWidget {
                 key: const ValueKey('home-feed'),
                 padding: const EdgeInsets.only(bottom: 28),
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'LUMI MARKET',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.secondary,
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Chào ${ref.watch(demoAccountProvider)?.name ?? 'bạn'}, mua gì hôm nay?',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -.6,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const DeliveryDetailsScreen(),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_outlined,
+                                  size: 16,
+                                  color: theme.colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    ref
+                                            .watch(deliveryDetailsProvider)
+                                            ?.address ??
+                                        'Thêm địa chỉ để sẵn sàng nhận hàng',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ),
+                                const Icon(Icons.keyboard_arrow_down, size: 18),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 14),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -89,24 +153,34 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       children: [
                         _QuickAction(
-                          icon: Icons.bolt_rounded,
-                          label: 'Flash Sale',
+                          icon: Icons.confirmation_number_outlined,
+                          label: 'Ưu đãi',
                           color: const Color(0xFFFFEEE8),
-                          onTap: () =>
-                              _openListing(context, title: 'Flash Sale'),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const VouchersScreen(),
+                            ),
+                          ),
                         ),
                         _QuickAction(
-                          icon: Icons.workspace_premium_outlined,
-                          label: 'Hàng chọn',
+                          icon: Icons.receipt_long_outlined,
+                          label: 'Đơn mua',
                           color: const Color(0xFFFFF3DD),
-                          onTap: () =>
-                              _openListing(context, title: 'Hàng chọn'),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const OrdersScreen(),
+                            ),
+                          ),
                         ),
                         _QuickAction(
-                          icon: Icons.sell_outlined,
-                          label: 'Giá tốt',
+                          icon: Icons.favorite_border_rounded,
+                          label: 'Yêu thích',
                           color: const Color(0xFFE9F5F1),
-                          onTap: () => _openListing(context, title: 'Giá tốt'),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const WishlistScreen(),
+                            ),
+                          ),
                         ),
                         _QuickAction(
                           icon: Icons.grid_view_rounded,
@@ -157,8 +231,7 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 22),
                   _SectionHeading(
                     title: 'Được yêu thích',
-                    subtitle:
-                        'Flash Sale · Giá tốt cho những món đang được săn đón',
+                    subtitle: 'Những món đáng thử cho mỗi ngày',
                     action: 'Xem thêm',
                     onAction: () =>
                         _openListing(context, title: 'Được yêu thích'),
@@ -170,6 +243,7 @@ class HomeScreen extends ConsumerWidget {
                             message: 'Sản phẩm sẽ sớm xuất hiện.',
                           )
                         : SizedBox(
+                            key: const ValueKey('home-featured-products'),
                             height: 266,
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(
@@ -359,112 +433,100 @@ class _HomeSearchHeader extends StatelessWidget {
 
 class _HeroBanner extends StatelessWidget {
   const _HeroBanner({required this.onTap});
-
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        height: 178,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF351E20), Color(0xFF9D3832), Color(0xFFF57742)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Positioned(
-              right: -35,
-              bottom: -92,
-              child: CircleAvatar(
-                radius: 125,
-                backgroundColor: Colors.white.withValues(alpha: .11),
-              ),
-            ),
-            Positioned(
-              right: 3,
-              top: 13,
-              child: Transform.rotate(
-                angle: .11,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.asset(
-                    'assets/products/earbuds.jpg',
-                    width: 134,
-                    height: 155,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
+    return Material(
+      color: const Color(0xFFE3EDE5),
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 6,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'LUMI DEALS',
+                      'THE EVERYDAY EDIT',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: const Color(0xFFFFD28C),
+                        color: const Color(0xFF41624B),
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Một chút mới,\nniềm vui mỗi ngày.',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: const Color(0xFF203D2C),
+                        height: 1.15,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: 175,
-                      child: Text(
-                        'Món hay\ngiá mê ly',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          height: 1.08,
-                        ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Chọn món bạn yêu.\nTận hưởng điều nhỏ bé.',
+                      style: TextStyle(
+                        color: Color(0xFF41624B),
+                        fontSize: 12,
+                        height: 1.5,
                       ),
                     ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 11,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
                             'Khám phá ngay',
                             style: theme.textTheme.labelLarge?.copyWith(
-                              color: AppColors.coralDark,
+                              color: const Color(0xFF203D2C),
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 17,
-                            color: AppColors.coralDark,
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 18,
+                          color: Color(0xFF203D2C),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 4,
+                child: Transform.rotate(
+                  angle: .08,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .7),
+                      borderRadius: BorderRadius.circular(70),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(65),
+                      child: Image.asset(
+                        'assets/products/earbuds.jpg',
+                        height: 170,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

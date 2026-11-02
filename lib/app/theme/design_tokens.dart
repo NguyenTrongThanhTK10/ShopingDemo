@@ -11,8 +11,8 @@ abstract final class AppColors {
   static const tealSoft = Color(0xFFE8F5F1);
   static const ink = Color(0xFF22252B);
   static const muted = Color(0xFF737981);
-  static const canvas = Color(0xFFF5F6F8);
-  static const line = Color(0xFFE9EBEF);
+  static const canvas = Color(0xFFF8F8F5);
+  static const line = Color(0xFFECECE7);
   static const white = Color(0xFFFFFFFF);
 
   static const productTech = Color(0xFFECEEF2);

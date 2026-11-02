@@ -39,8 +39,11 @@ class CartNotifier extends Notifier<CartState> {
     state = CartState([
       for (final line in current)
         if (line.id == variant.id)
-          line.copyWith(
+          CartLine(
+            product: product,
+            variant: variant,
             quantity: (line.quantity + quantity).clamp(1, variant.stock),
+            selected: line.selected,
           )
         else
           line,

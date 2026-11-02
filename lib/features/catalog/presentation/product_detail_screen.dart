@@ -7,6 +7,7 @@ import '../../cart/presentation/providers/cart_provider.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../reviews/presentation/providers/review_providers.dart';
 import '../../reviews/presentation/widgets/product_reviews_section.dart';
+import '../../wishlist/presentation/providers/wishlist_provider.dart';
 import '../domain/product.dart';
 import 'product_list_screen.dart';
 import 'providers/catalog_providers.dart';
@@ -27,7 +28,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   String? _selectedVariantId;
   int _quantity = 1;
   int _currentImageIndex = 0;
-  bool _favorite = false;
   final PageController _imageController = PageController();
   final GlobalKey _shopKey = GlobalKey();
   final GlobalKey _reviewsKey = GlobalKey();
@@ -249,10 +249,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         product: product,
                         price: price,
                         oldPrice: showOldPrice ? oldPrice : null,
-                        favorite: _favorite,
+                        favorite: ref
+                            .watch(wishlistProvider)
+                            .contains(product.id),
                         onOpenReviews: () => _scrollToSection(_reviewsKey),
-                        onToggleFavorite: () =>
-                            setState(() => _favorite = !_favorite),
+                        onToggleFavorite: () => ref
+                            .read(wishlistProvider.notifier)
+                            .toggle(product.id),
                       ),
                     ),
                     const SizedBox(height: 8),

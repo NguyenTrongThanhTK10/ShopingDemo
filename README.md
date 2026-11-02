@@ -4,6 +4,17 @@
 
 Ứng dụng người mua **Lumi Market** hiện dùng dữ liệu mẫu trong bộ nhớ để trình diễn luồng: Trang chủ → Danh mục/Tìm kiếm → Chi tiết sản phẩm → Giỏ hàng → Đặt hàng mô phỏng → Đơn mua → Đánh giá. Có năm tab chính; tab **Live & Video** dành cho nội dung của shop, còn Đơn mua mở từ trang **Tôi**. Giỏ hàng mở từ icon ở đầu trang chủ. Ứng dụng hỗ trợ giao diện sáng/tối và quản lý trạng thái bằng Riverpod. Dữ liệu giỏ hàng, đơn hàng và đánh giá mới sẽ được đặt lại khi đóng ứng dụng.
 
+### Cải tiến trải nghiệm mua sắm
+
+- **Giao diện:** trang chủ có lời chào theo tài khoản, địa chỉ nhận hàng, banner mới, lối tắt Ưu đãi / Đơn mua / Yêu thích / Danh mục; theme sáng/tối dùng màu nền, thẻ và thanh điều hướng thống nhất.
+- **Yêu thích:** chạm trái tim trên thẻ hoặc chi tiết sản phẩm. Danh sách dùng chung giữa các màn, mở từ Trang chủ hoặc Tôi; có trạng thái trống, đang tải và thử lại khi lỗi.
+- **Ưu đãi:** `LUMI10` giảm 10% tiền hàng, tối đa 50.000 ₫ cho đơn từ 200.000 ₫; `LUMI30` giảm 30.000 ₫ cho đơn từ 300.000 ₫. Mỗi đơn dùng một mã, không giảm phí giao hàng. Đây là quy tắc mẫu trong `CheckoutQuote`, cần thay bằng quote từ server khi tích hợp backend.
+- **Checkout:** chọn giao tiêu chuẩn (miễn phí, dự kiến 3–5 ngày) hoặc giao nhanh (30.000 ₫/đơn, dự kiến 1–2 ngày), chọn/nhập/bỏ mã ưu đãi và ghi chú tối đa 300 ký tự. Tổng tiền = tiền hàng + phí giao − giảm giá; đơn lưu snapshot phí, giảm giá, mã, cách giao và ghi chú. Thời gian và phí giao là mô phỏng, chưa tính theo địa chỉ hoặc theo shop.
+- **Đơn mua:** tìm theo mã đơn, tên sản phẩm hoặc người nhận, hỗ trợ tiếng Việt không dấu; xem lịch sử trạng thái và chi tiết tiền. Hủy đơn chưa thanh toán ở bước chờ thanh toán/chờ xác nhận, bắt buộc chọn lý do; đơn đã thanh toán không có luồng hoàn tiền trong demo. Có thể mô phỏng chuẩn bị/giao/nhận hàng, sau đó đánh giá. Đơn hoàn thành/đã hủy có nút **Mua lại**, tải lại catalog và kiểm tra giá/tồn kho trước khi thêm vào giỏ.
+- **Đánh giá của tôi:** mở từ Tôi → Đánh giá sản phẩm để xem hai tab Chờ đánh giá / Đã đánh giá. Chỉ sản phẩm trong đơn đã hoàn thành được viết nhận xét; đánh giá mới cập nhật danh sách, điểm trung bình và các thẻ sản phẩm.
+
+Mọi dữ liệu mới vẫn lưu trong bộ nhớ của phiên demo. Chưa có backend lưu trữ, tồn kho đồng bộ, giao nhận hoặc thu tiền thật. Các tham số mới của `placeOrder` là tùy chọn; lời gọi hiện có giữ cách tính mặc định. `DemoOrder` bổ sung snapshot checkout và sự kiện trạng thái; `copyWith` giữ nguyên snapshot khi cập nhật đơn. Không thêm hoặc nâng dependency.
+
 **Icon ứng dụng:** nền cam Lumi Market với túi mua sắm trắng và chữ L. Bộ icon Android (gồm adaptive icon), iOS, macOS, web và Windows được tạo bằng `swift tool/generate_app_icons.swift` từ cùng một bản vẽ để giữ kích thước nhất quán.
 
 **Live & Video:** mục Live có ba phiên quảng bá sản phẩm mô phỏng theo shop. Ảnh sản phẩm tự chuyển, có bình luận cục bộ, danh sách sản phẩm gắn trong phiên và luồng thêm vào giỏ bằng màn chọn phân loại hiện có. Mục Video vẫn hiển thị trạng thái chờ cùng gợi ý sản phẩm. Đây là bản mô phỏng bằng ảnh, chưa có luồng phát trực tiếp hoặc tệp video; cần nguồn nội dung và trình phát khi kết nối backend.
@@ -36,7 +47,7 @@ flutter analyze
 flutter test
 ```
 
-**Giới hạn hiện tại:** chưa kết nối API, đăng nhập, địa chỉ lưu trữ, tồn kho thực, phí vận chuyển, voucher hoặc thanh toán thật. Nút đặt hàng chỉ tạo đơn thử nghiệm trên thiết bị; không gửi đơn tới người bán. Khi có backend, thay `MockCatalogDataSource`/repository và trạng thái giỏ hàng, đơn hàng cục bộ bằng các API theo mục 7; giá và tồn kho phải được server xác thực ở checkout. Quy tắc kinh doanh còn chưa chốt ở mục 15 là TODO trước khi chạy production.
+**Giới hạn hiện tại:** chưa kết nối API, đăng nhập xác thực, địa chỉ lưu trữ, tồn kho thực, phí vận chuyển/voucher từ server hoặc thanh toán thật. Nút đặt hàng chỉ tạo đơn thử nghiệm trên thiết bị; không gửi đơn tới người bán. Khi có backend, thay `MockCatalogDataSource`/repository và trạng thái giỏ hàng, đơn hàng cục bộ bằng các API theo mục 7; giá và tồn kho phải được server xác thực ở checkout. Quy tắc kinh doanh còn chưa chốt ở mục 15 là TODO trước khi chạy production.
 
 > Phiên bản: 1.0 | Ngày: 2026-10-13  
 > Nền tảng: Flutter (Android/iOS), Riverpod, ASP.NET Core Web API, SQL Server, Vue 3 + PrimeVue  

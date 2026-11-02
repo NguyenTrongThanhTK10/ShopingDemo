@@ -138,6 +138,7 @@ void main() {
 
     final paymentTile = find.text('Cài đặt thanh toán');
     await tester.ensureVisible(paymentTile);
+    await tester.pumpAndSettle();
     await tester.tap(paymentTile);
     await tester.pumpAndSettle();
     expect(find.text('Phương thức ưu tiên'), findsOneWidget);
@@ -150,6 +151,7 @@ void main() {
 
     final addressTile = find.text('Địa chỉ nhận hàng');
     await tester.ensureVisible(addressTile);
+    await tester.pumpAndSettle();
     await tester.tap(addressTile);
     await tester.pumpAndSettle();
     await tester.enterText(

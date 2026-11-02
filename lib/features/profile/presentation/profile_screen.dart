@@ -9,6 +9,10 @@ import '../../orders/presentation/orders_screen.dart';
 import '../../orders/presentation/providers/orders_provider.dart';
 import '../../payment/presentation/payment_settings_screen.dart';
 import '../../payment/presentation/providers/payment_preferences_provider.dart';
+import '../../wishlist/presentation/providers/wishlist_provider.dart';
+import '../../wishlist/presentation/wishlist_screen.dart';
+import '../../checkout/presentation/vouchers_screen.dart';
+import '../../reviews/presentation/my_reviews_screen.dart';
 import 'account_details_screen.dart';
 import 'delivery_details_screen.dart';
 import 'providers/delivery_details_provider.dart';
@@ -145,11 +149,21 @@ class ProfileScreen extends ConsumerWidget {
                     _AccountActionTile(
                       icon: Icons.rate_review_outlined,
                       title: 'Đánh giá sản phẩm',
-                      subtitle: 'Xem đơn hoàn thành để viết đánh giá',
-                      onTap: () => _openPage(
-                        context,
-                        const OrdersScreen(initialStage: OrderStage.completed),
-                      ),
+                      subtitle: 'Sản phẩm chờ đánh giá và nhận xét đã gửi',
+                      onTap: () => _openPage(context, const MyReviewsScreen()),
+                    ),
+                    _AccountActionTile(
+                      icon: Icons.favorite_border_rounded,
+                      title: 'Sản phẩm yêu thích',
+                      subtitle:
+                          '${ref.watch(wishlistProvider).length} sản phẩm đã lưu',
+                      onTap: () => _openPage(context, const WishlistScreen()),
+                    ),
+                    _AccountActionTile(
+                      icon: Icons.confirmation_number_outlined,
+                      title: 'Ưu đãi của bạn',
+                      subtitle: 'Mã giảm giá và điều kiện áp dụng',
+                      onTap: () => _openPage(context, const VouchersScreen()),
                     ),
                   ],
                 ),

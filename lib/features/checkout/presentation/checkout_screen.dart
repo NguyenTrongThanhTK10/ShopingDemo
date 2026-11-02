@@ -14,6 +14,9 @@ import 'package:shopingdemo/features/payment/presentation/vietqr_payment_screen.
 import 'package:shopingdemo/features/payment/presentation/vnpay_payment_screen.dart';
 import 'package:shopingdemo/features/profile/presentation/providers/delivery_details_provider.dart';
 
+import '../domain/checkout_quote.dart';
+import 'vouchers_screen.dart';
+
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
@@ -26,6 +29,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _recipientController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  final _noteController = TextEditingController();
+  DeliveryOption _delivery = DeliveryOption.standard;
+  String? _voucherCode;
   late PaymentMethod _selectedPaymentMethod;
   bool _placingOrder = false;
 
@@ -46,6 +52,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _recipientController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -71,9 +78,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             phone: _phoneController.text.trim(),
             address: _addressController.text.trim(),
             paymentMethod: _selectedPaymentMethod,
-            paymentStatus: _selectedPaymentMethod == PaymentMethod.cod
-                ? PaymentStatus.pending
-                : PaymentStatus.pending,
+            paymentStatus: PaymentStatus.pending,
+            delivery: _delivery,
+            voucherCode: _voucherCode,
+            note: _noteController.text,
           );
       ref.read(cartProvider.notifier).clearSelected();
 
@@ -96,6 +104,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
         );
       }
+    } on ArgumentError catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.message?.toString() ?? 'Vui lòng kiểm tra lại đơn hàng.',
+          ),
+        ),
+      );
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -112,6 +128,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cart = ref.watch(cartProvider);
     final lines = cart.selectedLines;
     final colors = Theme.of(context).colorScheme;
+    final voucher = _voucherCode == null
+        ? null
+        : DemoVoucher.find(_voucherCode!);
+    final voucherValid =
+        voucher != null && cart.selectedSubtotal >= voucher.minimumSpend;
+    final quote = CheckoutQuote(
+      subtotal: cart.selectedSubtotal,
+      delivery: _delivery,
+      voucherCode: voucherValid ? _voucherCode : null,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Xác nhận đơn hàng')),
@@ -363,6 +389,70 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ),
                   const SizedBox(height: 20),
                   _SectionTitle(
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Phương thức giao hàng',
+                  ),
+                  const SizedBox(height: 10),
+                  _SurfaceCard(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      children: [
+                        for (final option in DeliveryOption.values)
+                          RadioListTile<DeliveryOption>(
+                            value: option,
+                            groupValue: _delivery,
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => _delivery = value);
+                              }
+                            },
+                            title: Text(option.label),
+                            subtitle: Text(
+                              '${option.estimate} · ${option.fee == 0 ? 'Miễn phí' : formatVnd(option.fee)}',
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _SurfaceCard(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.confirmation_number_outlined,
+                        color: colors.primary,
+                      ),
+                      title: Text(_voucherCode ?? 'Chọn mã ưu đãi'),
+                      subtitle: Text(
+                        _voucherCode == null
+                            ? 'Khám phá mã giảm giá dành cho bạn'
+                            : voucherValid
+                            ? 'Tiết kiệm ${formatVnd(quote.discount)}'
+                            : 'Đơn chưa đủ điều kiện áp dụng',
+                      ),
+                      trailing: _voucherCode == null
+                          ? const Icon(Icons.chevron_right)
+                          : IconButton(
+                              tooltip: 'Bỏ mã ưu đãi',
+                              onPressed: () =>
+                                  setState(() => _voucherCode = null),
+                              icon: const Icon(Icons.close),
+                            ),
+                      onTap: () async {
+                        final code = await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                VouchersScreen(subtotal: cart.selectedSubtotal),
+                          ),
+                        );
+                        if (mounted && code != null) {
+                          setState(() => _voucherCode = code);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _SectionTitle(
                     icon: Icons.receipt_long_outlined,
                     title: 'Chi tiết thanh toán',
                   ),
@@ -375,17 +465,37 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           value: formatVnd(cart.selectedSubtotal),
                         ),
                         const SizedBox(height: 10),
-                        const _AmountRow(
+                        _AmountRow(
                           label: 'Phí vận chuyển',
-                          value: 'Miễn phí (demo)',
+                          value: quote.shippingFee == 0
+                              ? 'Miễn phí (demo)'
+                              : formatVnd(quote.shippingFee),
                         ),
+                        if (quote.discount > 0) ...[
+                          const SizedBox(height: 10),
+                          _AmountRow(
+                            label: 'Ưu đãi ${quote.voucher!.code}',
+                            value: '-${formatVnd(quote.discount)}',
+                          ),
+                        ],
                         const Divider(height: 24),
                         _AmountRow(
                           label: 'Tổng cộng',
-                          value: formatVnd(cart.selectedSubtotal),
+                          value: formatVnd(quote.total),
                           prominent: true,
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _noteController,
+                    maxLength: 300,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Ghi chú cho đơn hàng',
+                      hintText: 'Ví dụ: gọi trước khi giao hàng',
+                      prefixIcon: Icon(Icons.edit_note_outlined),
                     ),
                   ),
                 ],
@@ -413,7 +523,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           Text(
-                            formatVnd(cart.selectedSubtotal),
+                            formatVnd(quote.total),
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   color: colors.primary,
@@ -456,15 +566,17 @@ class _SurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: padding ?? const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
+    return Material(
+      color: colors.surface,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: child,
+      child: Padding(
+        padding: padding ?? const EdgeInsets.all(16),
+        child: child,
+      ),
     );
   }
 }
