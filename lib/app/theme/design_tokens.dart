@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// Shared visual values for Lumi Market.
 abstract final class AppColors {
-  static const coral = Color(0xFFF45A31);
-  static const coralDark = Color(0xFFE84B26);
+  static const coral = Color(0xFFEE4D2D);
+  static const coralDark = Color(0xFFD83B20);
   static const coralSoft = Color(0xFFFFEDE7);
   static const profileHeaderLight = Color(0xFFF26540);
   static const profileHeaderDark = Color(0xFFC74526);
@@ -11,8 +11,8 @@ abstract final class AppColors {
   static const tealSoft = Color(0xFFE8F5F1);
   static const ink = Color(0xFF22252B);
   static const muted = Color(0xFF737981);
-  static const canvas = Color(0xFFF8F8F5);
-  static const line = Color(0xFFECECE7);
+  static const canvas = Color(0xFFF5F5F5);
+  static const line = Color(0xFFEEEEEE);
   static const white = Color(0xFFFFFFFF);
 
   static const productTech = Color(0xFFECEEF2);
@@ -44,9 +44,9 @@ abstract final class AppSpacing {
 }
 
 abstract final class AppRadius {
-  static const sm = 10.0;
-  static const md = 16.0;
-  static const lg = 24.0;
+  static const sm = 4.0;
+  static const md = 8.0;
+  static const lg = 12.0;
   static const pill = 100.0;
 }
 

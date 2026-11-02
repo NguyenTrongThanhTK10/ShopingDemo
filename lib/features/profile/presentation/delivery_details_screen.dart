@@ -95,7 +95,8 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                   validator: (value) =>
-                      RegExp(r'^0\d{9,10}$').hasMatch(value?.trim() ?? '')
+                      RegExp(r'^(0\d{9}|\+84\d{9})$')
+                          .hasMatch(value?.trim() ?? '')
                       ? null
                       : 'Nhập số điện thoại hợp lệ.',
                 ),
@@ -110,7 +111,7 @@ class _DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                     alignLabelWithHint: true,
                     prefixIcon: Icon(Icons.location_on_outlined),
                   ),
-                  validator: (value) => (value?.trim().length ?? 0) < 8
+                  validator: (value) => (value?.trim().length ?? 0) < 10
                       ? 'Nhập địa chỉ giao hàng đầy đủ.'
                       : null,
                 ),

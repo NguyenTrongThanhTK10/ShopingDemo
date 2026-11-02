@@ -12,12 +12,14 @@ class ProductCard extends ConsumerWidget {
     required this.product,
     required this.onTap,
     this.compact = false,
+    this.displayPrice,
     super.key,
   });
 
   final Product product;
   final VoidCallback onTap;
   final bool compact;
+  final int? displayPrice;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +33,9 @@ class ProductCard extends ConsumerWidget {
         ? 'Mới'
         : summary.average.toStringAsFixed(1);
     final oldPrice = product.oldPrice;
-    final hasDiscount = oldPrice != null && oldPrice > product.price;
+    final price = displayPrice ?? product.price;
+    final hasDiscount =
+        oldPrice != null && oldPrice > price && price == product.price;
     final discount = oldPrice == null || oldPrice <= product.price
         ? 0
         : ((oldPrice - product.price) * 100 / oldPrice).round();
@@ -47,7 +51,7 @@ class ProductCard extends ConsumerWidget {
       color: colors.surface,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colors.outlineVariant.withValues(alpha: .7)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(4),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -62,7 +66,7 @@ class ProductCard extends ConsumerWidget {
                   ProductImage(product: product, compact: true),
                   Positioned(
                     top: 4,
-                    right: 4,
+                    left: 4,
                     child: IconButton.filledTonal(
                       tooltip: favorite ? 'Bỏ yêu thích' : 'Yêu thích sản phẩm',
                       isSelected: favorite,
@@ -85,12 +89,14 @@ class ProductCard extends ConsumerWidget {
                   ),
                   if (hasDiscount)
                     Positioned(
-                      top: 8,
-                      left: 8,
+                      top: 0,
+                      right: 0,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: colors.primary,
-                          borderRadius: BorderRadius.circular(5),
+                          color: const Color(0xFFFFE6A1),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(4),
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -100,7 +106,7 @@ class ProductCard extends ConsumerWidget {
                           child: Text(
                             '-$discount%',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.white,
+                              color: const Color(0xFFA12D18),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -117,14 +123,21 @@ class ProductCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      height: 1.22,
-                      fontSize: compact ? 12.5 : null,
+                  SizedBox(
+                    height:
+                        MediaQuery.textScalerOf(context)
+                            .scale(compact ? 12.5 : 14) *
+                        1.22 *
+                        2,
+                    child: Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        height: 1.22,
+                        fontSize: compact ? 12.5 : 14,
+                      ),
                     ),
                   ),
                   SizedBox(height: compact ? 3 : 5),
@@ -132,12 +145,12 @@ class ProductCard extends ConsumerWidget {
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      formatVnd(product.price),
+                      formatVnd(price),
                       maxLines: 1,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colors.primary,
                         fontWeight: FontWeight.w800,
-                        fontSize: compact ? 14 : null,
+                        fontSize: compact ? 16 : 18,
                       ),
                     ),
                   ),

@@ -4,6 +4,7 @@ import 'package:shopingdemo/core/utils/money_formatter.dart';
 import 'package:shopingdemo/features/cart/domain/cart_line.dart';
 import 'package:shopingdemo/features/cart/presentation/providers/cart_provider.dart';
 import 'package:shopingdemo/features/catalog/presentation/product_list_screen.dart';
+import 'package:shopingdemo/features/catalog/presentation/product_detail_screen.dart';
 import 'package:shopingdemo/features/catalog/presentation/widgets/product_image.dart';
 import 'package:shopingdemo/features/catalog/presentation/widgets/quantity_stepper.dart';
 import 'package:shopingdemo/features/chat/presentation/chat_screen.dart';
@@ -25,17 +26,17 @@ class CartScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    padding: const EdgeInsets.only(bottom: 16),
                     children: [
                       _InfoBanner(colors: colors),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       for (final shop in _groupByShop(cart.items).entries) ...[
                         _ShopCartCard(
                           shopId: shop.key,
                           shopName: shop.value.first.product.shopName,
                           lines: shop.value,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                       ],
                     ],
                   ),
@@ -66,10 +67,10 @@ class _InfoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         children: [
@@ -77,7 +78,7 @@ class _InfoBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Kiểm tra sản phẩm và số lượng trước khi thanh toán.',
+              'Chọn sản phẩm muốn mua. Phí giao hàng và ưu đãi được tính ở bước tiếp theo.',
               style: TextStyle(color: colors.onPrimaryContainer),
             ),
           ),
@@ -87,7 +88,7 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-class _ShopCartCard extends StatelessWidget {
+class _ShopCartCard extends ConsumerWidget {
   const _ShopCartCard({
     required this.shopId,
     required this.shopName,
@@ -99,19 +100,34 @@ class _ShopCartCard extends StatelessWidget {
   final List<CartLine> lines;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final selected = lines.where((line) => line.selected).length;
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: EdgeInsets.zero,
       elevation: 0,
       color: colors.surface,
+      shape: const RoundedRectangleBorder(),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            padding: const EdgeInsets.fromLTRB(4, 2, 12, 2),
             child: Row(
               children: [
+                Checkbox(
+                  key: ValueKey('select-shop-$shopId'),
+                  semanticLabel: 'Chọn tất cả sản phẩm của $shopName',
+                  tristate: true,
+                  value: selected == 0
+                      ? false
+                      : selected == lines.length
+                      ? true
+                      : null,
+                  onChanged: (_) => ref
+                      .read(cartProvider.notifier)
+                      .selectShop(shopId, selected != lines.length),
+                ),
                 Icon(
                   Icons.storefront_outlined,
                   size: 20,
@@ -139,10 +155,6 @@ class _ShopCartCard extends StatelessWidget {
                     ),
                   ),
                   icon: const Icon(Icons.forum_rounded),
-                ),
-                Text(
-                  '${lines.length} sản phẩm',
-                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),
@@ -200,12 +212,20 @@ class _CartLineTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        line.product.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                ProductDetailScreen(productId: line.product.id),
+                          ),
+                        ),
+                        child: Text(
+                          line.product.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                        ),
                       ),
                     ),
                     IconButton(
@@ -247,25 +267,45 @@ class _CartLineTile extends ConsumerWidget {
   }
 }
 
-class _CartCheckoutBar extends StatelessWidget {
+class _CartCheckoutBar extends ConsumerWidget {
   const _CartCheckoutBar({required this.selectedCount, required this.subtotal});
 
   final int selectedCount;
   final int subtotal;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final cart = ref.watch(cartProvider);
+    final allSelected = cart.items.every((line) => line.selected);
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
         decoration: BoxDecoration(
           color: colors.surface,
           border: Border(top: BorderSide(color: colors.outlineVariant)),
         ),
         child: Row(
           children: [
+            Checkbox(
+              key: const ValueKey('select-all-cart'),
+              semanticLabel: 'Chọn tất cả sản phẩm',
+              value: allSelected,
+              onChanged: (value) =>
+                  ref.read(cartProvider.notifier).selectAll(value ?? false),
+            ),
+            GestureDetector(
+              onTap: () =>
+                  ref.read(cartProvider.notifier).selectAll(!allSelected),
+              child: const SizedBox(
+                width: 36,
+                child: FittedBox(
+                  child: Text('Tất cả', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,25 +315,35 @@ class _CartCheckoutBar extends StatelessWidget {
                     'Đã chọn $selectedCount',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  Text(
-                    formatVnd(subtotal),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.bold,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      formatVnd(subtotal),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            FilledButton(
-              onPressed: selectedCount == 0
-                  ? null
-                  : () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const CheckoutScreen(),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 108,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                ),
+                onPressed: selectedCount == 0
+                    ? null
+                    : () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const CheckoutScreen(),
+                        ),
                       ),
-                    ),
-              child: const Text('Thanh toán'),
+                child: const FittedBox(child: Text('Thanh toán')),
+              ),
             ),
           ],
         ),

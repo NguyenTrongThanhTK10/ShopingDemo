@@ -6,7 +6,11 @@
 
 ### Cải tiến trải nghiệm mua sắm
 
-- **Giao diện:** trang chủ có lời chào theo tài khoản, địa chỉ nhận hàng, banner mới, lối tắt Ưu đãi / Đơn mua / Yêu thích / Danh mục; theme sáng/tối dùng màu nền, thẻ và thanh điều hướng thống nhất.
+- **Thiết kế theo luồng marketplace:** màu cam chủ đạo, nền xám nhạt, thẻ ít bo góc, banner mua sắm, giá và nhãn giảm giá nổi bật; giữ thương hiệu Lumi Market. Thanh tìm kiếm/giỏ hàng/chat cố định ở Trang chủ; chi tiết sản phẩm có lối tắt Shop, Chat, Thêm vào giỏ và Mua ngay.
+- **Mua ngay:** chọn phân loại và số lượng rồi đến thẳng Xác nhận đơn hàng; chỉ mua đúng lựa chọn đó, không thêm, chọn lại hoặc xóa các sản phẩm đang có trong giỏ. Hủy/quay lại checkout giữ nguyên giỏ hàng. Checkout từ giỏ dùng bản chụp các dòng đã chọn; sau khi đặt thành công chỉ trừ số lượng đã đặt.
+- **Giỏ hàng và xác nhận đơn:** chọn/bỏ chọn toàn bộ hoặc từng shop, tổng tiền cập nhật theo lựa chọn; nút thanh toán vô hiệu khi chưa chọn sản phẩm. Checkout gom sản phẩm theo shop, có tổng tiền hàng từng shop, địa chỉ đã lưu hiển thị ngắn gọn và có nút Thay đổi. Phí vận chuyển và voucher vẫn tính một lần trên toàn đơn theo quy tắc demo bên dưới, chưa tách đơn giao nhận cho từng shop.
+- **Bộ lọc tìm kiếm:** chọn khoảng giá, mức đánh giá và còn hàng, có kiểm tra khoảng giá không hợp lệ và thiết lập lại. Giá/tồn kho được xét trên cùng một phân loại; mức đánh giá dùng điểm hiện tại. Khi lọc giá/tồn kho, thẻ và sắp xếp giá dùng phân loại rẻ nhất phù hợp; mở chi tiết chọn sẵn đúng phân loại đó. Có thể mở giỏ hàng trực tiếp từ danh sách kết quả.
+- **Giao diện:** trang chủ có địa chỉ nhận hàng, banner mới, lối tắt Ưu đãi / Đơn mua / Yêu thích / Danh mục; theme sáng/tối dùng màu nền, thẻ và thanh điều hướng thống nhất.
 - **Yêu thích:** chạm trái tim trên thẻ hoặc chi tiết sản phẩm. Danh sách dùng chung giữa các màn, mở từ Trang chủ hoặc Tôi; có trạng thái trống, đang tải và thử lại khi lỗi.
 - **Ưu đãi:** `LUMI10` giảm 10% tiền hàng, tối đa 50.000 ₫ cho đơn từ 200.000 ₫; `LUMI30` giảm 30.000 ₫ cho đơn từ 300.000 ₫. Mỗi đơn dùng một mã, không giảm phí giao hàng. Đây là quy tắc mẫu trong `CheckoutQuote`, cần thay bằng quote từ server khi tích hợp backend.
 - **Checkout:** chọn giao tiêu chuẩn (miễn phí, dự kiến 3–5 ngày) hoặc giao nhanh (30.000 ₫/đơn, dự kiến 1–2 ngày), chọn/nhập/bỏ mã ưu đãi và ghi chú tối đa 300 ký tự. Tổng tiền = tiền hàng + phí giao − giảm giá; đơn lưu snapshot phí, giảm giá, mã, cách giao và ghi chú. Thời gian và phí giao là mô phỏng, chưa tính theo địa chỉ hoặc theo shop.

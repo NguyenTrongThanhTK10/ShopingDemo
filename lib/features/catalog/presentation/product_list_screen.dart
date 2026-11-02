@@ -6,6 +6,9 @@ import '../domain/filter_products.dart';
 import 'product_detail_screen.dart';
 import 'providers/catalog_providers.dart';
 import 'widgets/catalog_search_field.dart';
+import 'widgets/catalog_filter_sheet.dart';
+import '../../cart/presentation/cart_screen.dart';
+import '../../cart/presentation/providers/cart_provider.dart';
 import 'widgets/product_card.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
@@ -30,6 +33,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   late final TextEditingController _searchController;
   String? _categoryId;
   ProductSort _sortOrder = ProductSort.popular;
+  CatalogFilters _filters = const CatalogFilters();
 
   @override
   void initState() {
@@ -56,6 +60,33 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       appBar: AppBar(
         title: Text(widget.title ?? 'Khám phá sản phẩm'),
         backgroundColor: colors.surface,
+        actions: [
+          IconButton(
+            tooltip: 'Bộ lọc tìm kiếm',
+            icon: Badge.count(
+              count: _filters.count,
+              isLabelVisible: _filters.count > 0,
+              child: const Icon(Icons.filter_alt_outlined),
+            ),
+            onPressed: () async {
+              final filters = await showCatalogFilterSheet(context, _filters);
+              if (mounted && filters != null) {
+                setState(() => _filters = filters);
+              }
+            },
+          ),
+          IconButton(
+            tooltip: 'Mở giỏ hàng',
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const CartScreen())),
+            icon: Badge.count(
+              count: ref.watch(cartProvider).totalQuantity,
+              isLabelVisible: ref.watch(cartProvider).totalQuantity > 0,
+              child: const Icon(Icons.shopping_cart_outlined),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         top: false,
@@ -130,7 +161,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 data: (allProducts) {
                   final items = filterProducts(
                     allProducts,
-                    ratingOverrides: _sortOrder == ProductSort.topRated
+                    ratingOverrides:
+                        _sortOrder == ProductSort.topRated ||
+                            _filters.minimumRating > 0
                         ? {
                             for (final product in allProducts)
                               if (ref.watch(
@@ -143,6 +176,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     query: _searchController.text,
                     categoryId: _categoryId,
                     sortOrder: _sortOrder,
+                    minimumPrice: _filters.minimumPrice,
+                    maximumPrice: _filters.maximumPrice,
+                    minimumRating: _filters.minimumRating,
+                    inStockOnly: _filters.inStockOnly,
                   );
                   if (items.isEmpty) {
                     return _ListingStatus(
@@ -151,10 +188,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       detail: 'Thử từ khóa hoặc danh mục khác nhé.',
                       action:
                           _searchController.text.isNotEmpty ||
-                              _categoryId != null
+                              _categoryId != null ||
+                              _filters.count > 0
                           ? () {
                               _searchController.clear();
-                              setState(() => _categoryId = null);
+                              setState(() {
+                                _categoryId = null;
+                                _filters = const CatalogFilters();
+                              });
                             }
                           : null,
                       actionLabel: 'Xem tất cả',
@@ -186,16 +227,34 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                     crossAxisSpacing: 10,
                                     childAspectRatio: .57,
                                   ),
-                              itemBuilder: (context, index) => ProductCard(
-                                product: items[index],
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => ProductDetailScreen(
-                                      productId: items[index].id,
+                              itemBuilder: (context, index) {
+                                final hasVariantFilter =
+                                    _filters.minimumPrice != null ||
+                                    _filters.maximumPrice != null ||
+                                    _filters.inStockOnly;
+                                final variant = hasVariantFilter
+                                    ? matchingProductVariant(
+                                        items[index],
+                                        minimumPrice: _filters.minimumPrice,
+                                        maximumPrice: _filters.maximumPrice,
+                                        inStockOnly: _filters.inStockOnly,
+                                      )
+                                    : null;
+                                return ProductCard(
+                                  product: items[index],
+                                  displayPrice: variant?.price,
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => ProductDetailScreen(
+                                        productId: items[index].id,
+                                        initialVariantId: variant?.id,
+                                        initialImageIndex:
+                                            variant?.imageIndex ?? 0,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             );
                           },
                         ),
@@ -258,14 +317,14 @@ class _CatalogFilterChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onTap(),
       backgroundColor: colors.surface,
-      selectedColor: colors.outlineVariant,
+      selectedColor: colors.primaryContainer,
       surfaceTintColor: Colors.transparent,
-      checkmarkColor: colors.onSurface,
+      checkmarkColor: colors.primary,
       side: BorderSide(
-        color: selected ? colors.onSurfaceVariant : colors.outlineVariant,
+        color: selected ? colors.primary : colors.outlineVariant,
       ),
       labelStyle: theme.textTheme.labelLarge?.copyWith(
-        color: colors.onSurface,
+        color: selected ? colors.primary : colors.onSurface,
         fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
       ),
     );

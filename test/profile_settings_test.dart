@@ -180,6 +180,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Lan'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('edit-checkout-address')));
+    await tester.pumpAndSettle();
     final fields = tester
         .widgetList<TextFormField>(find.byType(TextFormField))
         .toList();

@@ -15,7 +15,6 @@ import '../../voice_search/presentation/widgets/voice_search_button.dart';
 import '../../checkout/presentation/vouchers_screen.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../../wishlist/presentation/wishlist_screen.dart';
-import '../../profile/presentation/providers/demo_account_provider.dart';
 import '../../profile/presentation/providers/delivery_details_provider.dart';
 import '../../profile/presentation/delivery_details_screen.dart';
 
@@ -81,65 +80,43 @@ class HomeScreen extends ConsumerWidget {
                 key: const ValueKey('home-feed'),
                 padding: const EdgeInsets.only(bottom: 28),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'LUMI MARKET',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.secondary,
-                            letterSpacing: 2,
-                            fontWeight: FontWeight.w800,
-                          ),
+                  Material(
+                    color: theme.colorScheme.surface,
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const DeliveryDetailsScreen(),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Chào ${ref.watch(demoAccountProvider)?.name ?? 'bạn'}, mua gì hôm nay?',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -.6,
-                          ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
                         ),
-                        const SizedBox(height: 6),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const DeliveryDetailsScreen(),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 16,
+                              color: theme.colorScheme.primary,
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on_outlined,
-                                  size: 16,
-                                  color: theme.colorScheme.secondary,
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    ref
-                                            .watch(deliveryDetailsProvider)
-                                            ?.address ??
-                                        'Thêm địa chỉ để sẵn sàng nhận hàng',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                ),
-                                const Icon(Icons.keyboard_arrow_down, size: 18),
-                              ],
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                ref.watch(deliveryDetailsProvider)?.address ??
+                                    'Chọn địa chỉ nhận hàng',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
                             ),
-                          ),
+                            const Icon(Icons.chevron_right, size: 16),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _HeroBanner(
@@ -147,7 +124,7 @@ class HomeScreen extends ConsumerWidget {
                           _openListing(context, title: 'Khám phá hôm nay'),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -191,7 +168,7 @@ class HomeScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 8),
                   _SectionHeading(
                     title: 'Danh mục nổi bật',
                     action: 'Xem tất cả',
@@ -202,7 +179,7 @@ class HomeScreen extends ConsumerWidget {
                     data: (items) => items.isEmpty
                         ? const _InlineMessage(message: 'Chưa có danh mục nào.')
                         : SizedBox(
-                            height: 98,
+                            height: 86,
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -228,10 +205,10 @@ class HomeScreen extends ConsumerWidget {
                       onRetry: () => ref.invalidate(categoriesProvider),
                     ),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 8),
                   _SectionHeading(
                     title: 'Được yêu thích',
-                    subtitle: 'Những món đáng thử cho mỗi ngày',
+                    subtitle: 'Khám phá những lựa chọn nổi bật',
                     action: 'Xem thêm',
                     onAction: () =>
                         _openListing(context, title: 'Được yêu thích'),
@@ -244,7 +221,7 @@ class HomeScreen extends ConsumerWidget {
                           )
                         : SizedBox(
                             key: const ValueKey('home-featured-products'),
-                            height: 266,
+                            height: 258,
                             child: ListView.separated(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -254,7 +231,7 @@ class HomeScreen extends ConsumerWidget {
                               separatorBuilder: (_, _) =>
                                   const SizedBox(width: 12),
                               itemBuilder: (context, index) => SizedBox(
-                                width: 160,
+                                width: 152,
                                 child: ProductCard(
                                   product: items[index],
                                   compact: true,
@@ -272,8 +249,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   _SectionHeading(
-                    title: 'Dành riêng cho bạn',
-                    subtitle: 'Cảm hứng mua sắm mỗi ngày',
+                    title: 'GỢI Ý HÔM NAY',
                     action: 'Khám phá',
                     onAction: () => _openListing(context),
                   ),
@@ -360,7 +336,7 @@ class _HomeSearchHeader extends StatelessWidget {
                 child: Material(
                   key: const ValueKey('home-search'),
                   color: colors.surface,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(4),
                   child: InkWell(
                     onTap: onSearch,
                     borderRadius: BorderRadius.circular(8),
@@ -439,13 +415,18 @@ class _HeroBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      color: const Color(0xFFE3EDE5),
-      borderRadius: BorderRadius.circular(24),
+      color: const Color(0xFFFFE9DE),
+      borderRadius: BorderRadius.circular(8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFFFE9DE), Color(0xFFFFCFB6)],
+            ),
+          ),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Expanded(
@@ -454,71 +435,88 @@ class _HeroBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'THE EVERYDAY EDIT',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: const Color(0xFF41624B),
-                        letterSpacing: 1.2,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Một chút mới,\nniềm vui mỗi ngày.',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: const Color(0xFF203D2C),
-                        height: 1.15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                     const Text(
-                      'Chọn món bạn yêu.\nTận hưởng điều nhỏ bé.',
+                      'LUMI MARKET',
                       style: TextStyle(
-                        color: Color(0xFF41624B),
-                        fontSize: 12,
-                        height: 1.5,
+                        fontSize: 10,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF9B351D),
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Khám phá ngay',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: const Color(0xFF203D2C),
-                              fontWeight: FontWeight.w700,
+                    const SizedBox(height: 8),
+                    Text(
+                      'Mở app,\nmở niềm vui!',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: const Color(0xFF982C19),
+                        height: 1.12,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 26,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Deal xinh cho ngày mới',
+                      style: TextStyle(color: Color(0xFF963E27), fontSize: 12),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.coralDark,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Khám phá ngay',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 18,
-                          color: Color(0xFF203D2C),
-                        ),
-                      ],
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 flex: 4,
                 child: Transform.rotate(
-                  angle: .08,
+                  angle: -.07,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .7),
-                      borderRadius: BorderRadius.circular(70),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x229B351D),
+                          blurRadius: 18,
+                          offset: Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(65),
+                      borderRadius: BorderRadius.circular(8),
                       child: Image.asset(
                         'assets/products/earbuds.jpg',
-                        height: 170,
+                        height: 138,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -556,11 +554,11 @@ class _QuickAction extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              width: 54,
-              height: 54,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: theme.colorScheme.primary, size: 27),
             ),
@@ -599,8 +597,8 @@ class _CategoryShortcut extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              height: 60,
-              width: 60,
+              height: 52,
+              width: 52,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: colors.surface,
@@ -653,7 +651,7 @@ class _SectionHeading extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),

@@ -73,6 +73,39 @@ class CartNotifier extends Notifier<CartState> {
     );
   }
 
+  void selectAll(bool selected) {
+    state = CartState([
+      for (final line in state.items) line.copyWith(selected: selected),
+    ]);
+  }
+
+  void selectShop(String shopId, bool selected) {
+    state = CartState([
+      for (final line in state.items)
+        if (line.product.shopId == shopId)
+          line.copyWith(selected: selected)
+        else
+          line,
+    ]);
+  }
+
+  /// Consume the submitted snapshot without removing later additions.
+  void removePurchased(List<CartLine> purchased) {
+    final quantities = <String, int>{};
+    for (final line in purchased) {
+      quantities.update(
+        line.id,
+        (value) => value + line.quantity,
+        ifAbsent: () => line.quantity,
+      );
+    }
+    state = CartState([
+      for (final line in state.items)
+        if (line.quantity > (quantities[line.id] ?? 0))
+          line.copyWith(quantity: line.quantity - (quantities[line.id] ?? 0)),
+    ]);
+  }
+
   void clearSelected() {
     state = CartState(state.items.where((line) => !line.selected).toList());
   }

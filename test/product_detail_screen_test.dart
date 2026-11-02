@@ -103,7 +103,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('buy now confirms quantity before selecting the cart line', (
+  testWidgets('buy now checks out only its selection and preserves the cart', (
     tester,
   ) async {
     await pumpProduct(tester, 'serum', const Size(320, 720));
@@ -131,12 +131,12 @@ void main() {
     expect(find.text('538.000 ₫'), findsOneWidget);
 
     await confirmSelection(tester);
-    expect(find.text('Giỏ hàng (3)'), findsOneWidget);
-    expect(find.text('50 ml'), findsOneWidget);
-    expect(find.text('Đã chọn 1'), findsOneWidget);
-    expect(find.text('807.000 ₫'), findsOneWidget);
+    expect(find.text('Xác nhận đơn hàng'), findsOneWidget);
+    expect(find.text('50 ml · x2'), findsOneWidget);
+    expect(find.text('538.000 ₫'), findsWidgets);
     expect(find.byType(NavigationBar), findsNothing);
-    expect(container.read(cartProvider).items.single.selected, isTrue);
+    expect(container.read(cartProvider).items.single.selected, isFalse);
+    expect(container.read(cartProvider).items.single.quantity, 1);
 
     await tester.pageBack();
     await tester.pumpAndSettle();

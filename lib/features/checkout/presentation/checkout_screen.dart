@@ -18,7 +18,9 @@ import '../domain/checkout_quote.dart';
 import 'vouchers_screen.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
-  const CheckoutScreen({super.key});
+  const CheckoutScreen({super.key, this.buyNowItems});
+
+  final List<CartLine>? buyNowItems;
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -26,6 +28,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
   final _recipientController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
@@ -34,13 +37,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String? _voucherCode;
   late PaymentMethod _selectedPaymentMethod;
   bool _placingOrder = false;
+  bool _editingAddress = true;
+  late final List<CartLine> _lines;
+
+  int get _subtotal => _lines.fold(0, (sum, line) => sum + line.subtotal);
 
   @override
   void initState() {
     super.initState();
+    _lines = List.unmodifiable(
+      widget.buyNowItems ?? ref.read(cartProvider).selectedLines,
+    );
     _selectedPaymentMethod = ref.read(preferredPaymentMethodProvider);
     final deliveryDetails = ref.read(deliveryDetailsProvider);
     if (deliveryDetails != null) {
+      _editingAddress = false;
       _recipientController.text = deliveryDetails.recipient;
       _phoneController.text = deliveryDetails.phone;
       _addressController.text = deliveryDetails.address;
@@ -53,14 +64,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _noteController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _placeOrder() {
-    if (_placingOrder || !(_formKey.currentState?.validate() ?? false)) {
+    if (_placingOrder) return;
+    if (_recipientController.text.trim().length < 2 ||
+        !RegExp(r'^(0\d{9}|\+84\d{9})$')
+            .hasMatch(_phoneController.text.trim()) ||
+        _addressController.text.trim().length < 10) {
+      setState(() => _editingAddress = true);
+      if (_scrollController.hasClients) _scrollController.jumpTo(0);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _formKey.currentState?.validate();
+      });
       return;
     }
-    final selected = ref.read(cartProvider).selectedLines;
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    final selected = _lines;
     if (selected.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Hãy chọn ít nhất một sản phẩm.')),
@@ -80,10 +104,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             paymentMethod: _selectedPaymentMethod,
             paymentStatus: PaymentStatus.pending,
             delivery: _delivery,
-            voucherCode: _voucherCode,
+            voucherCode:
+                _voucherCode != null &&
+                    _subtotal >=
+                        (DemoVoucher.find(_voucherCode!)?.minimumSpend ?? 0)
+                ? _voucherCode
+                : null,
             note: _noteController.text,
           );
-      ref.read(cartProvider.notifier).clearSelected();
+      if (widget.buyNowItems == null) {
+        ref.read(cartProvider.notifier).removePurchased(selected);
+      }
 
       if (_selectedPaymentMethod == PaymentMethod.vietQr) {
         Navigator.of(context).pushReplacement(
@@ -125,16 +156,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
-    final lines = cart.selectedLines;
+    final lines = _lines;
     final colors = Theme.of(context).colorScheme;
     final voucher = _voucherCode == null
         ? null
         : DemoVoucher.find(_voucherCode!);
-    final voucherValid =
-        voucher != null && cart.selectedSubtotal >= voucher.minimumSpend;
+    final voucherValid = voucher != null && _subtotal >= voucher.minimumSpend;
     final quote = CheckoutQuote(
-      subtotal: cart.selectedSubtotal,
+      subtotal: _subtotal,
       delivery: _delivery,
       voucherCode: voucherValid ? _voucherCode : null,
     );
@@ -146,13 +175,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           : Form(
               key: _formKey,
               child: ListView(
+                controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 children: [
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: colors.primaryContainer,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
                       children: [
@@ -163,90 +193,195 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Đây là đơn hàng mô phỏng. Không phát sinh giao dịch hoặc giao hàng thực tế.',
+                            'Đơn hàng trải nghiệm · Không thu tiền hoặc giao hàng thật.',
                             style: TextStyle(color: colors.onPrimaryContainer),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _SectionTitle(
                     icon: Icons.location_on_outlined,
                     title: 'Thông tin nhận hàng',
                   ),
                   const SizedBox(height: 10),
                   _SurfaceCard(
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _recipientController,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            labelText: 'Họ và tên',
-                            prefixIcon: Icon(Icons.person_outline),
-                            border: OutlineInputBorder(),
+                    child: !_editingAddress
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _recipientController.text,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    key: const ValueKey(
+                                      'edit-checkout-address',
+                                    ),
+                                    onPressed: () =>
+                                        setState(() => _editingAddress = true),
+                                    child: const Text('Thay đổi'),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                _phoneController.text,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(_addressController.text),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              TextFormField(
+                                controller: _recipientController,
+                                textCapitalization: TextCapitalization.words,
+                                textInputAction: TextInputAction.next,
+                                decoration: const InputDecoration(
+                                  labelText: 'Họ và tên',
+                                  prefixIcon: Icon(Icons.person_outline),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) =>
+                                    (value?.trim().length ?? 0) < 2
+                                    ? 'Nhập tên người nhận.'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                textInputAction: TextInputAction.next,
+                                decoration: const InputDecoration(
+                                  labelText: 'Số điện thoại',
+                                  prefixIcon: Icon(Icons.phone_outlined),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  final phone = value?.trim() ?? '';
+                                  return RegExp(r'^(0\d{9}|\+84\d{9})$')
+                                          .hasMatch(phone)
+                                      ? null
+                                      : 'Nhập số điện thoại Việt Nam hợp lệ.';
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _addressController,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
+                                maxLines: 3,
+                                decoration: const InputDecoration(
+                                  labelText: 'Địa chỉ nhận hàng',
+                                  hintText: 'Số nhà, đường, phường/xã, tỉnh/thành phố',
+                                  alignLabelWithHint: true,
+                                  prefixIcon: Icon(Icons.home_outlined),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) =>
+                                    (value?.trim().length ?? 0) < 10
+                                    ? 'Nhập địa chỉ nhận hàng đầy đủ.'
+                                    : null,
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    if (_formKey.currentState?.validate() ??
+                                        false) {
+                                      FocusScope.of(context).unfocus();
+                                      setState(() => _editingAddress = false);
+                                    }
+                                  },
+                                  child: const Text('Dùng địa chỉ này'),
+                                ),
+                              ),
+                            ],
                           ),
-                          validator: (value) => (value?.trim().length ?? 0) < 2
-                              ? 'Nhập tên người nhận.'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            labelText: 'Số điện thoại',
-                            prefixIcon: Icon(Icons.phone_outlined),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            final phone = value?.trim() ?? '';
-                            return RegExp(r'^(0\d{9}|\+84\d{9})$')
-                                    .hasMatch(phone)
-                                ? null
-                                : 'Nhập số điện thoại Việt Nam hợp lệ.';
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _addressController,
-                          textCapitalization: TextCapitalization.sentences,
-                          maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: 'Địa chỉ nhận hàng',
-                            hintText:
-                                'Số nhà, đường, phường/xã, tỉnh/thành phố',
-                            alignLabelWithHint: true,
-                            prefixIcon: Icon(Icons.home_outlined),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) => (value?.trim().length ?? 0) < 10
-                              ? 'Nhập địa chỉ nhận hàng đầy đủ.'
-                              : null,
-                        ),
-                      ],
-                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _SectionTitle(
                     icon: Icons.shopping_bag_outlined,
                     title: 'Sản phẩm (${lines.length})',
                   ),
                   const SizedBox(height: 10),
+                  for (final shop in _groupCheckoutByShop(lines).values) ...[
+                    _SurfaceCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.storefront_outlined,
+                                size: 18,
+                                color: colors.onSurface,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  shop.first.product.shopName,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 24),
+                          for (var i = 0; i < shop.length; i++) ...[
+                            if (i > 0) const SizedBox(height: 16),
+                            _CheckoutLine(line: shop[i]),
+                          ],
+                          const Divider(height: 24),
+                          _AmountRow(
+                            label: 'Tiền hàng của shop',
+                            value: formatVnd(
+                              shop.fold<int>(
+                                0,
+                                (sum, line) => sum + line.subtotal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  const SizedBox(height: 12),
+                  _SectionTitle(
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Phương thức giao hàng',
+                  ),
+                  const SizedBox(height: 10),
                   _SurfaceCard(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Column(
                       children: [
-                        for (var i = 0; i < lines.length; i++) ...[
-                          if (i > 0) const Divider(height: 20),
-                          _CheckoutLine(line: lines[i]),
-                        ],
+                        for (final option in DeliveryOption.values)
+                          RadioListTile<DeliveryOption>(
+                            value: option,
+                            groupValue: _delivery,
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => _delivery = value);
+                              }
+                            },
+                            title: Text(option.label),
+                            subtitle: Text(
+                              '${option.estimate} · ${option.fee == 0 ? 'Miễn phí' : formatVnd(option.fee)}',
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _SectionTitle(
                     icon: Icons.payments_outlined,
                     title: 'Phương thức thanh toán',
@@ -307,51 +442,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                               fontSize: 13.5,
                                             ),
                                           ),
-                                          if (method ==
-                                              PaymentMethod.vietQr) ...[
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.shade100,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                              ),
-                                              child: Text(
-                                                'Khuyên dùng',
-                                                style: TextStyle(
-                                                  color: Colors.green.shade800,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ] else if (method ==
-                                              PaymentMethod.vnpay) ...[
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.blue.shade100,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                              ),
-                                              child: Text(
-                                                'Cổng VNPAY',
-                                                style: TextStyle(
-                                                  color: Colors.blue.shade800,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
                                         ],
                                       ),
                                       const SizedBox(height: 5),
@@ -387,34 +477,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       }).toList(),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  _SectionTitle(
-                    icon: Icons.local_shipping_outlined,
-                    title: 'Phương thức giao hàng',
-                  ),
-                  const SizedBox(height: 10),
-                  _SurfaceCard(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Column(
-                      children: [
-                        for (final option in DeliveryOption.values)
-                          RadioListTile<DeliveryOption>(
-                            value: option,
-                            groupValue: _delivery,
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() => _delivery = value);
-                              }
-                            },
-                            title: Text(option.label),
-                            subtitle: Text(
-                              '${option.estimate} · ${option.fee == 0 ? 'Miễn phí' : formatVnd(option.fee)}',
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _SurfaceCard(
                     padding: EdgeInsets.zero,
                     child: ListTile(
@@ -441,8 +504,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       onTap: () async {
                         final code = await Navigator.of(context).push<String>(
                           MaterialPageRoute(
-                            builder: (_) =>
-                                VouchersScreen(subtotal: cart.selectedSubtotal),
+                            builder: (_) => VouchersScreen(subtotal: _subtotal),
                           ),
                         );
                         if (mounted && code != null) {
@@ -451,7 +513,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _SectionTitle(
                     icon: Icons.receipt_long_outlined,
                     title: 'Chi tiết thanh toán',
@@ -462,7 +524,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       children: [
                         _AmountRow(
                           label: 'Tạm tính',
-                          value: formatVnd(cart.selectedSubtotal),
+                          value: formatVnd(_subtotal),
                         ),
                         const SizedBox(height: 10),
                         _AmountRow(
@@ -487,7 +549,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _noteController,
                     maxLength: 300,
@@ -557,6 +619,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 }
 
+Map<String, List<CartLine>> _groupCheckoutByShop(List<CartLine> lines) {
+  final shops = <String, List<CartLine>>{};
+  for (final line in lines) {
+    shops.putIfAbsent(line.product.shopId, () => []).add(line);
+  }
+  return shops;
+}
+
 class _SurfaceCard extends StatelessWidget {
   const _SurfaceCard({required this.child, this.padding});
 
@@ -571,7 +641,7 @@ class _SurfaceCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Padding(
         padding: padding ?? const EdgeInsets.all(16),

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/money_formatter.dart';
 import '../../cart/presentation/cart_screen.dart';
+import '../../cart/domain/cart_line.dart';
 import '../../cart/presentation/providers/cart_provider.dart';
+import '../../checkout/presentation/checkout_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../reviews/presentation/providers/review_providers.dart';
 import '../../reviews/presentation/widgets/product_reviews_section.dart';
@@ -15,9 +17,16 @@ import 'widgets/product_image.dart';
 import 'widgets/product_selection_sheet.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
-  const ProductDetailScreen({required this.productId, super.key});
+  const ProductDetailScreen({
+    required this.productId,
+    this.initialVariantId,
+    this.initialImageIndex = 0,
+    super.key,
+  });
 
   final String productId;
+  final String? initialVariantId;
+  final int initialImageIndex;
 
   @override
   ConsumerState<ProductDetailScreen> createState() =>
@@ -28,9 +37,17 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   String? _selectedVariantId;
   int _quantity = 1;
   int _currentImageIndex = 0;
-  final PageController _imageController = PageController();
+  late final PageController _imageController;
   final GlobalKey _shopKey = GlobalKey();
   final GlobalKey _reviewsKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedVariantId = widget.initialVariantId;
+    _currentImageIndex = widget.initialImageIndex;
+    _imageController = PageController(initialPage: widget.initialImageIndex);
+  }
 
   ProductVariant? _selectedVariant(Product product) {
     if (product.variants.isEmpty) return null;
@@ -78,15 +95,33 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     }
 
     if (action == ProductPurchaseAction.configure) return;
-    final cart = ref.read(cartProvider.notifier);
-    cart.add(product, selection.variant, quantity: selection.quantity);
     if (action == ProductPurchaseAction.buyNow) {
-      cart.toggleSelected(selection.variant.id, true);
-      _openCart();
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => CheckoutScreen(
+            buyNowItems: [
+              CartLine(
+                product: product,
+                variant: selection.variant,
+                quantity: selection.quantity,
+              ),
+            ],
+          ),
+        ),
+      );
     } else {
+      final before = ref.read(cartProvider).totalQuantity;
+      ref
+          .read(cartProvider.notifier)
+          .add(product, selection.variant, quantity: selection.quantity);
+      final added = ref.read(cartProvider).totalQuantity - before;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Đã thêm ${selection.quantity} sản phẩm vào giỏ hàng'),
+          content: Text(
+            added == 0
+                ? 'Giỏ hàng đã đạt số lượng tối đa của phân loại này.'
+                : 'Đã thêm $added sản phẩm vào giỏ hàng',
+          ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -428,6 +463,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ),
           bottomNavigationBar: _ProductBottomBar(
             onShop: () => _scrollToSection(_shopKey),
+            onChat: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ChatScreen(
+                  shopId: product.shopId,
+                  shopName: product.shopName,
+                  product: product,
+                ),
+              ),
+            ),
             onAdd: stock < 1
                 ? null
                 : () =>
@@ -564,11 +608,13 @@ class _ProductGallery extends StatelessWidget {
 class _ProductBottomBar extends StatelessWidget {
   const _ProductBottomBar({
     required this.onShop,
+    required this.onChat,
     required this.onAdd,
     required this.onBuy,
   });
 
   final VoidCallback onShop;
+  final VoidCallback onChat;
   final VoidCallback? onAdd;
   final VoidCallback? onBuy;
 
@@ -577,7 +623,7 @@ class _ProductBottomBar extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final buttonShape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(4),
     );
     final buttonTextStyle = theme.textTheme.labelLarge?.copyWith(
       fontSize: 13,
@@ -600,36 +646,17 @@ class _ProductBottomBar extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(
-                      width: 44,
-                      child: Tooltip(
-                        message: 'Xem thông tin gian hàng',
-                        child: Material(
-                          color: colors.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                          child: InkWell(
-                            onTap: onShop,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.storefront_outlined,
-                                  size: 20,
-                                  color: colors.onSurfaceVariant,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Shop',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                    _ProductShortcut(
+                      icon: Icons.storefront_outlined,
+                      label: 'Shop',
+                      tooltip: 'Xem thông tin gian hàng',
+                      onTap: onShop,
+                    ),
+                    _ProductShortcut(
+                      icon: Icons.chat_outlined,
+                      label: 'Chat',
+                      tooltip: 'Trò chuyện với shop',
+                      onTap: onChat,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -691,6 +718,45 @@ class _ProductBottomBar extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ProductShortcut extends StatelessWidget {
+  const _ProductShortcut({
+    required this.icon,
+    required this.label,
+    required this.tooltip,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 40,
+    child: Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Theme.of(context).colorScheme.surface,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(fontSize: 10),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _ProductHeadline extends ConsumerWidget {

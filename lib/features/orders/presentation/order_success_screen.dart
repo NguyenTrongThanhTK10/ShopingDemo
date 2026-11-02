@@ -100,7 +100,7 @@ class OrderSuccessScreen extends StatelessWidget {
             OutlinedButton(
               onPressed: () =>
                   Navigator.of(context).popUntil((route) => route.isFirst),
-              child: const Text('Về giỏ hàng'),
+              child: const Text('Tiếp tục mua sắm'),
             ),
           ],
         ),
